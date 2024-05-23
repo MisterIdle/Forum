@@ -4,49 +4,64 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Form</title>
+
     <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-F0aK6C9wT9oyMzwVg5F3LBwxrLi/CtRdgfO6lJi7fYyZt3SfD0A2B/AhE6ZYezESR3RzEZDkcrQh5oSl+znfNQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
 </head>
 <body>
-    <form id="registerForm" action="/register" method="post">
-        <h1>Register</h1>
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
+    <div class="border">
+        <form id="registerForm" action="/register" method="post">
+            <h1>Signup</h1>
 
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
 
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
 
-        <label for="confirm">Confirm password:</label>
-        <input type="password" id="confirm" name="confirm" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
 
-        <div style="color: red;">{{.Message}}</div>
+            <label for="confirm">Confirm password:</label>
+            <input type="password" id="confirm" name="confirm" required>
 
-        <input type="submit" value="Register">
+            <a type="button" onclick="toggleForm('loginForm')">Already have an account?</a>
 
-        <button type="button" onclick="toggleForm('loginForm')">Login</button>
-    </form>
+            <input type="submit" value="Register">
 
-    <form id="loginForm" action="/login" method="post" style="display: none;">
-        <h1>Login</h1>
-        <label for="loginIdentifier">Username or Email:</label>
-        <input type="text" id="loginIdentifier" name="identifier" required>
+            <div style="color: red; margin-top: 15px;">{{.Message}}</div>
+        </form>
 
-        <label for="loginPassword">Password:</label>
-        <input type="password" id="loginPassword" name="password" required>
+        <form id="loginForm" action="/login" method="post" class="hidden">
+            <h1>Login</h1>
 
-        <div style="color: red;">{{.Message}}</div>
+            <label for="loginIdentifier">Username or Email:</label>
+            <input type="text" id="loginIdentifier" name="identifier" required>
 
-        <input type="submit" value="Login">
+            <label for="loginPassword">Password:</label>
+            <input type="password" id="loginPassword" name="password" required>
 
-        <button type="button" onclick="toggleForm('registerForm')">Register</button>
-    </form>
+            <a type="button" onclick="toggleForm('registerForm')">Don't have an account?</a>
 
-    <form action="/login/github/" method="GET">
-        <input type="submit" value="Login with GitHub">
-    </form>
+            <input type="submit" value="Login">
 
+            <div style="color: red; margin-top: 15px;">{{.Message}}</div>
+        </form>
+
+        <p>Or login with:</p>
+    
+        <a href="/login/github/" class="github-login">
+            <i class="fab fa-github"></i> Login with GitHub
+        </a>
+        <a href="/login/google/" class="google-login">
+            <i class="fab fa-google"></i> Login with Google
+        </a>
+        
+        
+    </div>
+    
     <script src="../javascript/script.js"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>
