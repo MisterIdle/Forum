@@ -3,9 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Registration Form</title>
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
-    <h1>Bienvenue !</h1>
+    <form id="registerForm" action="/register" method="post">
+        <h1>Register</h1>
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="confirm">Confirm password:</label>
+        <input type="password" id="confirm" name="confirm" required>
+
+        <div style="color: red;">{{.Message}}</div>
+
+        <input type="submit" value="Register">
+
+        <button type="button" onclick="toggleForm('loginForm')">Login</button>
+    </form>
+
+    <form id="loginForm" action="/login" method="post" style="display: none;">
+        <h1>Login</h1>
+        <label for="loginIdentifier">Username or Email:</label>
+        <input type="text" id="loginIdentifier" name="identifier" required>
+
+        <label for="loginPassword">Password:</label>
+        <input type="password" id="loginPassword" name="password" required>
+
+        <div style="color: red;">{{.Message}}</div>
+
+        <input type="submit" value="Login">
+
+        <button type="button" onclick="toggleForm('registerForm')">Register</button>
+    </form>
+
+    <form action="/login/github/" method="GET">
+        <input type="submit" value="Login with GitHub">
+    </form>
+
+    <script src="../javascript/script.js"></script>
 </body>
 </html>
