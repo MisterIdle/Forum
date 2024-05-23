@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Category Posts</title>
+</head>
+<body>
+    <h1>Posts in Category</h1>
+    {{range .}}
+        <div>
+            <p><strong>{{.Username}}</strong> posted at {{.Timestamp}}:</p>
+            <p>{{.Content}}</p>
+        </div>
+        <hr>
+    {{else}}
+        <p>No posts available.</p>
+    {{end}}
+</body>
+</html>
