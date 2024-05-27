@@ -5,21 +5,6 @@ import (
 	"net/http"
 )
 
-type Data struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type ErrorMessage struct {
-	Message string
-}
-
-type Session struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-	ID       int    `json:"id"`
-}
-
 const (
 	GITHUB_CLIENT_ID     = "Ov23liWELhSqACpxuAnb"
 	GITHUB_CLIENT_SECRET = "a6764689efbf7cb3f02e844ad5c18215a1eedc36"
@@ -54,7 +39,24 @@ func HandleAll() {
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	RenderTemplateForum(w, "templates/forum.html", nil, nil)
+
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	sessionToken := c.Value
+
+	userSession, exists := sessions[sessionToken]
+	if !exists {
+		fmt.Println("Session not found")
+	}
+
+	RenderTemplateGlobal(w, "templates/index.html", userSession)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {

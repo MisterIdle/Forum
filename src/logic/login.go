@@ -8,12 +8,31 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
+var sessions = map[string]Session{}
+
+type ErrorMessage struct {
+	Message string
+}
+
+type Session struct {
+	Username string
+	Method   string
+	expiry   time.Time
+}
+
+type Credentials struct {
+	Username string
+}
+
+var creds Credentials
+
 ////////////////////////
-// LOGIN LOGIC /////////
+// USER AUTH LOGIC /////
 ////////////////////////
 
 func Register(w http.ResponseWriter, r *http.Request) {
@@ -43,6 +62,23 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	creds.Username = username
+
+	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	sessions[sessionToken] = Session{
+		Username: creds.Username,
+		Method:   "LOCAL",
+		expiry:   expiresAt,
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken,
+		Expires: expiresAt,
+	})
+
 	newUser(username, email, string(hashedPassword), "Default.jpg", "LOCAL")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -64,6 +100,23 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
+
+	creds.Username = user
+
+	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	sessions[sessionToken] = Session{
+		Username: creds.Username,
+		Method:   "LOCAL",
+		expiry:   expiresAt,
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken,
+		Expires: expiresAt,
+	})
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -111,10 +164,31 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := json.Unmarshal([]byte(githubData), &githubUser)
 	if err != nil {
-		log.Panic("Failed to parse GitHub user data")
+		log.Panic("Failed to parse Github user data")
 	}
 
-	newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
+	creds.Username = githubUser.Name
+
+	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	sessions[sessionToken] = Session{
+		Username: creds.Username,
+		Method:   "GITHUB",
+		expiry:   expiresAt,
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken,
+		Expires: expiresAt,
+	})
+
+	if !checkUser(githubUser.Name, githubUser.Email) {
+		newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
+	}
+
+	fmt.Println(sessions)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -234,7 +308,26 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse Google user data")
 	}
 
-	newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
+	creds.Username = googleUser.Name
+
+	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	sessions[sessionToken] = Session{
+		Username: creds.Username,
+		Method:   "GOOGLE",
+		expiry:   expiresAt,
+	}
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   sessionToken,
+		Expires: expiresAt,
+	})
+
+	if !checkUser(googleUser.Name, googleUser.Email) {
+		newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
