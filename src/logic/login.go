@@ -2,14 +2,19 @@ package logic
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
-// LOGIN LOGIC
+////////////////////////
+// LOGIN LOGIC /////////
+////////////////////////
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
@@ -21,58 +26,67 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		Message: "",
 	}
 
-	if username == "" || email == "" || password == "" || confirmPassword == "" {
-		data.Message = "Please fill in all fields"
-		RenderTemplateGlobal(w, "templates/register.html", data)
-		return
-	}
-
 	if password != confirmPassword {
 		data.Message = "Passwords do not match"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Panic("Failed to generate hashed password")
+	}
+
 	if checkUser(username, email) {
-		data.Message = "User already exists"
+		data.Message = "Username or email already exists"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
-	insertUser(username, email, password, "default.jpg", "NORMAL")
+	newUser(username, email, string(hashedPassword), "Default.jpg", "LOCAL")
+
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
-	identifier := r.FormValue("identifier")
+	user := r.FormValue("user")
 	password := r.FormValue("password")
 
 	data := ErrorMessage{
 		Message: "",
 	}
 
-	if identifier == "" || password == "" {
-		data.Message = "Please fill in all fields"
-		RenderTemplateGlobal(w, "templates/login.html", data)
-		return
-	}
+	hashedPassword := getHashedPassword(user)
 
-	if !checkUser(identifier, identifier) {
-		data.Message = "User does not exist"
-		RenderTemplateGlobal(w, "templates/login.html", data)
-		return
-	}
-
-	if !checkPassword(identifier, password) {
-		data.Message = "Incorrect password"
-		RenderTemplateGlobal(w, "templates/login.html", data)
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	if err != nil {
+		data.Message = "Username or password is incorrect"
+		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-// GITHUB LOGIC
+func getHashedPassword(username string) string {
+	query := `SELECT password FROM users WHERE username = ?;`
+	row := db.QueryRow(query, username)
+
+	var hashedPassword string
+	err := row.Scan(&hashedPassword)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			log.Panic("User not found")
+		}
+		log.Panic(err)
+	}
+
+	return hashedPassword
+}
+
+////////////////////////
+// GITHUB LOGIC ////////
+////////////////////////
 
 func getGithubClientID() string {
 	return GITHUB_CLIENT_ID
@@ -90,12 +104,9 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	githubData := getGithubData(githubAccessToken)
 
 	var githubUser struct {
-		Login     string `json:"login"`
-		ID        int    `json:"id"`
-		NodeID    string `json:"node_id"`
-		AvatarURL string `json:"avatar_url"`
-		Name      string `json:"name"`
+		Name      string `json:"login"`
 		Email     string `json:"email"`
+		AvatarURL string `json:"avatar_url"`
 	}
 
 	err := json.Unmarshal([]byte(githubData), &githubUser)
@@ -103,9 +114,7 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse GitHub user data")
 	}
 
-	if !checkUser(githubUser.Login, githubUser.Email) {
-		insertUser(githubUser.Login, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
-	}
+	newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -185,7 +194,9 @@ func githubLoginHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
 }
 
-// GOOGLE LOGIC
+////////////////////////
+// GOOGLE LOGIC ////////
+////////////////////////
 
 func getGoogleClientID() string {
 	return GOOGLE_CLIENT_ID
@@ -212,10 +223,7 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	googleUserData := getGoogleUserData(googleAccessToken)
 
-	fmt.Println(googleUserData)
-
 	var googleUser struct {
-		ID      string `json:"id"`
 		Email   string `json:"email"`
 		Name    string `json:"name"`
 		Picture string `json:"picture"`
@@ -226,9 +234,7 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse Google user data")
 	}
 
-	if !checkUser(googleUser.Name, googleUser.Email) {
-		insertUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
-	}
+	newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

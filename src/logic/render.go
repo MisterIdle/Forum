@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-func RenderTemplateInGame(w http.ResponseWriter, tmpl string, data interface{}, session *Session) {
+func RenderTemplateForum(w http.ResponseWriter, tmpl string, data interface{}, session *Session) {
 	tmpt, err := template.ParseFiles(tmpl)
 	if err != nil {
 		fmt.Print("Error parsing template: ", err)

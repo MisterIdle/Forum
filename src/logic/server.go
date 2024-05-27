@@ -53,10 +53,8 @@ func HandleAll() {
 
 }
 
-// GIT HUB LOGIC
-
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	RenderTemplateGlobal(w, "templates/index.html", nil)
+	RenderTemplateForum(w, "templates/forum.html", nil, nil)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -72,5 +70,5 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Login(w, r)
 		return
 	}
-	RenderTemplateWithoutData(w, "templates/login.html")
+	RenderTemplateWithoutData(w, "templates/register.html")
 }
