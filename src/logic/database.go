@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/gofrs/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -29,17 +30,25 @@ func InitData() {
 	fmt.Println("Database initialized")
 }
 
+// NORMAL, GITHUB OR GOOGLE ACCOUNT
 func createData() {
 	query := `
 	CREATE TABLE Users (
 		user_id INTEGER PRIMARY KEY,
-		username VARCHAR UNIQUE,
-		email VARCHAR UNIQUE,
+		uuid TEXT UNIQUE,
+		username VARCHAR,
+		email VARCHAR,
 		password VARCHAR,
 		creation_date DATETIME,
 		rank_id INTEGER,
 		profile_picture VARCHAR,
+		account_type VARCHAR,
 		FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
+	);
+	
+	CREATE TABLE Ranks (
+		rank_id INTEGER PRIMARY KEY,
+		rank_name VARCHAR
 	);`
 	_, err := db.Exec(query)
 	if err != nil {
@@ -53,22 +62,37 @@ func deleteData() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
 
-func checkUser(username, email string) bool {
-	query := `SELECT * FROM users WHERE username = ? OR email = ?;`
-	rows, err := db.Query(query, username, email)
+	query = `DROP TABLE ranks;`
+	_, err = db.Exec(query)
 	if err != nil {
 		fmt.Println(err)
 	}
-	defer rows.Close()
-
-	return rows.Next()
 }
 
-func insertUser(username, email, password string) error {
-	query := `INSERT INTO users (username, email, password, creation_date, rank_id, profile_picture) VALUES (?, ?, ?, datetime('now'), 1, 'default.jpg');`
-	_, err := db.Exec(query, username, email, password)
+func checkUser(username, email string) bool {
+	query := `SELECT username, email FROM users WHERE username = ? OR email = ?;`
+	row := db.QueryRow(query, username, email)
+	var dbUsername, dbEmail string
+	err := row.Scan(&dbUsername, &dbEmail)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false
+		}
+		fmt.Println(err)
+		return true
+	}
+	return true
+}
+
+func newUser(username, email, password, profile_picture, account string) error {
+	uuid, err := uuid.NewV4()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	query := `INSERT INTO users (uuid, username, email, password, creation_date, rank_id, profile_picture, account_type) VALUES (?, ?, ?, ?, datetime('now'), 1, ?, ?);`
+	_, err = db.Exec(query, uuid.String(), username, email, password, profile_picture, account)
 	if err != nil {
 		fmt.Println(err)
 		return err

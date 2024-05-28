@@ -5,23 +5,16 @@ import (
 	"net/http"
 )
 
-type Data struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-type ErrorMessage struct {
-	Message string
-}
-
-type Session struct {
-	Username string `json:"username"`
-	Token    string `json:"token"`
-	ID       int    `json:"id"`
-}
+const (
+	GITHUB_CLIENT_ID     = "Ov23liWELhSqACpxuAnb"
+	GITHUB_CLIENT_SECRET = "a6764689efbf7cb3f02e844ad5c18215a1eedc36"
+	GOOGLE_CLIENT_ID     = "881937808313-8a95bvir63s8ceku4s9f4jmmf6omd3ij.apps.googleusercontent.com"
+	GOOGLE_CLIENT_SECRET = "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"
+)
 
 func LaunchApp() {
 	HandleAll()
+
 	fmt.Println("Server is running on port 3030")
 	err := http.ListenAndServe(":3030", nil)
 	if err != nil {
@@ -36,72 +29,60 @@ func HandleAll() {
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
+
+	http.HandleFunc("/login/github/", githubLoginHandler)
+	http.HandleFunc("/login/github/callback", githubCallbackHandler)
+
+	http.HandleFunc("/login/google/", googleLoginHandler)
+	http.HandleFunc("/login/google/callback", googleCallbackHandler)
+
+	http.HandleFunc("/logout", logoutHandler)
+
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-	RenderTemplateGlobal(w, "templates/index.html", nil)
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			RenderTemplateGlobal(w, "templates/index.html", nil)
+			return
+		}
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	sessionToken := c.Value
+	userSession, exists := sessions[sessionToken]
+	if !exists {
+		RenderTemplateGlobal(w, "templates/index.html", nil)
+		return
+	}
+
+	RenderTemplateGlobal(w, "templates/index.html", userSession)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		username := r.FormValue("username")
-		email := r.FormValue("email")
-		password := r.FormValue("password")
-		confirmPassword := r.FormValue("confirm")
-
-		data := ErrorMessage{
-			Message: "",
-		}
-
-		if username == "" || email == "" || password == "" || confirmPassword == "" {
-			data.Message = "Please fill in all fields"
-			RenderTemplateGlobal(w, "templates/register.html", data)
-			return
-		}
-
-		if password != confirmPassword {
-			data.Message = "Passwords do not match"
-			RenderTemplateGlobal(w, "templates/register.html", data)
-			return
-		}
-
-		if checkUser(username, email) {
-			data.Message = "User already exists"
-			RenderTemplateGlobal(w, "templates/register.html", data)
-			return
-		}
-
-		insertUser(username, email, password)
+	if isUserLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
+	if r.Method == http.MethodPost {
+		Register(w, r)
+		return
+	}
 	RenderTemplateWithoutData(w, "templates/register.html")
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodPost {
-		identifier := r.FormValue("identifier")
-		password := r.FormValue("password")
-
-		data := ErrorMessage{
-			Message: "",
-		}
-
-		if identifier == "" || password == "" {
-			data.Message = "Please fill in all fields"
-			RenderTemplateGlobal(w, "templates/register.html", data)
-			return
-		}
-
-		if !checkUser(identifier, identifier) {
-			data.Message = "User does not exist"
-			RenderTemplateGlobal(w, "templates/register.html", data)
-			return
-		}
-
+	if isUserLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-	RenderTemplateWithoutData(w, "templates/register.html")
+
+	if r.Method == http.MethodPost {
+		Login(w, r)
+		return
+	}
+	RenderTemplateWithoutData(w, "templates/login.html")
 }
