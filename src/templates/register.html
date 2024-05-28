@@ -46,6 +46,38 @@
 
             <input type="submit" value="Login">
 
+            <a type="button" onclick="toggleForm('forgotForm')">Forgot your password?</a>
+
+            <div style="color: red; margin-top: 15px;">{{.Message}}</div>
+        </form>
+
+        <form id="forgotForm" action="/forgot" method="post" class="hidden">
+            <h1>Forgot Password</h1>
+
+            <label for="forgotEmail">Email:</label>
+            <input type="email" id="forgotEmail" name="email" required>
+
+            <a type="button" onclick="toggleForm('loginForm')">Remembered your password?</a>
+
+            <input type="submit" value="Reset Password">
+
+            <div style="color: red; margin-top: 15px;">{{.Message}}</div>
+        </form>
+
+        <form id="resetForm" action="/reset" method="post" class="hidden">
+            <h1>Reset Password</h1>
+
+            <label for="code">Reset Code:</label>
+            <input type="text" id="code" name="code" required>
+
+            <label for="resetPassword">New Password:</label>
+            <input type="password" id="resetPassword" name="password" required>
+
+            <label for="resetConfirm">Confirm new password:</label>
+            <input type="password" id="resetConfirm" name="confirm" required>
+
+            <input type="submit" value="Reset Password">
+
             <div style="color: red; margin-top: 15px;">{{.Message}}</div>
         </form>
 

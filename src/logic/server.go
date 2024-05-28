@@ -3,13 +3,7 @@ package logic
 import (
 	"fmt"
 	"net/http"
-)
-
-const (
-	GITHUB_CLIENT_ID     = "Ov23liWELhSqACpxuAnb"
-	GITHUB_CLIENT_SECRET = "a6764689efbf7cb3f02e844ad5c18215a1eedc36"
-	GOOGLE_CLIENT_ID     = "881937808313-8a95bvir63s8ceku4s9f4jmmf6omd3ij.apps.googleusercontent.com"
-	GOOGLE_CLIENT_SECRET = "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"
+	"time"
 )
 
 func LaunchApp() {
@@ -29,6 +23,8 @@ func HandleAll() {
 	http.HandleFunc("/", HomeHandler)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
+	http.HandleFunc("/forgot", ForgotHandler)
+	http.HandleFunc("/reset", ResetHandler)
 
 	http.HandleFunc("/login/github/", githubLoginHandler)
 	http.HandleFunc("/login/github/callback", githubCallbackHandler)
@@ -36,7 +32,7 @@ func HandleAll() {
 	http.HandleFunc("/login/google/", googleLoginHandler)
 	http.HandleFunc("/login/google/callback", googleCallbackHandler)
 
-	http.HandleFunc("/logout", logoutHandler)
+	http.HandleFunc("/logout", LogoutHandler)
 
 }
 
@@ -85,4 +81,56 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	RenderTemplateWithoutData(w, "templates/register.html")
+}
+
+func ForgotHandler(w http.ResponseWriter, r *http.Request) {
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		Forgot(w, r)
+		return
+	}
+
+	RenderTemplateWithoutData(w, "templates/register.html")
+}
+
+func ResetHandler(w http.ResponseWriter, r *http.Request) {
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		Reset(w, r)
+		return
+	}
+
+	RenderTemplateWithoutData(w, "templates/register.html")
+}
+
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			http.Redirect(w, r, "/register", http.StatusSeeOther)
+			return
+		}
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	sessionToken := c.Value
+
+	delete(sessions, sessionToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+
+	http.Redirect(w, r, "/register", http.StatusSeeOther)
 }

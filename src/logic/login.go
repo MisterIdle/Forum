@@ -6,13 +6,26 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
+	"net/smtp"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var sessions = map[string]Session{}
+
+const (
+	GITHUB_CLIENT_ID     = "Ov23liWELhSqACpxuAnb"
+	GITHUB_CLIENT_SECRET = "a6764689efbf7cb3f02e844ad5c18215a1eedc36"
+	GOOGLE_CLIENT_ID     = "881937808313-8a95bvir63s8ceku4s9f4jmmf6omd3ij.apps.googleusercontent.com"
+	GOOGLE_CLIENT_SECRET = "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"
+	FORGOT_EMAIL         = "noreplyforumtest@gmail.com"
+	FORGOT_PASSWORD      = "lnkqxjttfyrzyoju"
+	SMTP_ADDRESS         = "smtp.gmail.com"
+	SMTP_PORT            = "587"
+)
 
 type ErrorMessage struct {
 	Message string
@@ -92,28 +105,87 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func logoutHandler(w http.ResponseWriter, r *http.Request) {
-	c, err := r.Cookie("session_token")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			http.Redirect(w, r, "/register", http.StatusSeeOther)
-			return
-		}
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+func Forgot(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("email")
+
+	data := ErrorMessage{
+		Message: "",
+	}
+
+	if !checkUser("", email) {
+		data.Message = "Email does not exist"
+		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
-	sessionToken := c.Value
+	code := generateRandomCode()
 
-	delete(sessions, sessionToken)
+	EmailSend("Password Reset", code, []string{email})
+	setForgetPasswordToken(email, code)
 
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   "",
-		Expires: time.Now(),
-	})
+	http.Redirect(w, r, "/reset", http.StatusSeeOther)
+}
 
-	http.Redirect(w, r, "/register", http.StatusSeeOther)
+func Reset(w http.ResponseWriter, r *http.Request) {
+	code := r.FormValue("code")
+	password := r.FormValue("password")
+	confirmPassword := r.FormValue("confirm")
+
+	data := ErrorMessage{
+		Message: "",
+	}
+
+	if password != confirmPassword {
+		data.Message = "Passwords do not match"
+		RenderTemplateGlobal(w, "templates/register.html", data)
+		return
+	}
+
+	if !getForgetPasswordToken(code) {
+		data.Message = "Invalid code"
+		RenderTemplateGlobal(w, "templates/register.html", data)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		log.Panic("Failed to generate hashed password")
+	}
+
+	changeResetPassword(code, string(hashedPassword))
+	clearForgetPasswordToken(code)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+func generateRandomCode() string {
+	code := fmt.Sprintf("%d", rand.Intn(999999))
+	return code
+}
+
+func EmailSend(subject string, body string, to []string) {
+	auth := smtp.PlainAuth(
+		"",
+		FORGOT_EMAIL,
+		FORGOT_PASSWORD,
+		SMTP_ADDRESS,
+	)
+
+	msg := "From: " + FORGOT_EMAIL + "\n" + "Subject: " + subject + "\n" + body
+
+	err := smtp.SendMail(
+		SMTP_ADDRESS+":"+SMTP_PORT,
+		auth,
+		FORGOT_EMAIL,
+		to,
+		[]byte(msg),
+	)
+
+	if err != nil {
+		log.Panic("Email failed to send")
+	}
+
+	log.Print("Email sent")
 }
 
 func isUserLoggedIn(r *http.Request) bool {

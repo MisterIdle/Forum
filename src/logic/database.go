@@ -43,6 +43,7 @@ func createData() {
 		rank_id INTEGER,
 		profile_picture VARCHAR,
 		account_type VARCHAR,
+		forget_password_token TEXT,
 		FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
 	);
 	
@@ -94,6 +95,49 @@ func getPassword(username string) string {
 		fmt.Println(err)
 	}
 	return password
+}
+
+// Change password where forget_password_token = code
+func changeResetPassword(code, password string) {
+	query := `UPDATE users SET password = ? WHERE forget_password_token = ?;`
+	_, err := db.Exec(query, password, code)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println("Password changed")
+}
+
+// Set null where forget_password_token = code
+func clearForgetPasswordToken(code string) {
+	query := `UPDATE users SET forget_password_token = NULL WHERE forget_password_token = ?;`
+	_, err := db.Exec(query, code)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func setForgetPasswordToken(email, token string) {
+	query := `UPDATE users SET forget_password_token = ? WHERE email = ?;`
+	_, err := db.Exec(query, token, email)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func getForgetPasswordToken(code string) bool {
+	query := `SELECT forget_password_token FROM users WHERE forget_password_token = ?;`
+	row := db.QueryRow(query, code)
+	var token string
+	err := row.Scan(&token)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false
+		}
+		fmt.Println(err)
+		return true
+	}
+	return true
 }
 
 func newUser(username, email, password, profile_picture, account string) error {
