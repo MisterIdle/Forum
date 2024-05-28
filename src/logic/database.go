@@ -85,6 +85,17 @@ func checkUser(username, email string) bool {
 	return true
 }
 
+func getPassword(username string) string {
+	query := `SELECT password FROM users WHERE username = ?;`
+	row := db.QueryRow(query, username)
+	var password string
+	err := row.Scan(&password)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return password
+}
+
 func newUser(username, email, password, profile_picture, account string) error {
 	uuid, err := uuid.NewV4()
 	if err != nil {

@@ -84,5 +84,5 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Login(w, r)
 		return
 	}
-	RenderTemplateWithoutData(w, "templates/login.html")
+	RenderTemplateWithoutData(w, "templates/register.html")
 }

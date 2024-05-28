@@ -2,7 +2,6 @@ package logic
 
 import (
 	"bytes"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -78,7 +77,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Message: "",
 	}
 
-	hashedPassword := getHashedPassword(user)
+	hashedPassword := getPassword(user)
 
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
@@ -115,22 +114,6 @@ func logoutHandler(w http.ResponseWriter, r *http.Request) {
 	})
 
 	http.Redirect(w, r, "/register", http.StatusSeeOther)
-}
-
-func getHashedPassword(username string) string {
-	query := `SELECT password FROM users WHERE username = ?;`
-	row := db.QueryRow(query, username)
-
-	var hashedPassword string
-	err := row.Scan(&hashedPassword)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			log.Panic("User not found")
-		}
-		log.Panic(err)
-	}
-
-	return hashedPassword
 }
 
 func isUserLoggedIn(r *http.Request) bool {
