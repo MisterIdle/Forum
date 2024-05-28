@@ -86,13 +86,32 @@ func checkUserMail(email, account string) bool {
 	return true
 }
 
-func getPassword(username string) string {
-	query := `SELECT password FROM users WHERE username = ?;`
-	row := db.QueryRow(query, username)
+func GetUsernameByEmail(username, email, account string) string {
+	query := `SELECT username FROM users WHERE username = ? OR email = ? AND account_type = ?;`
+	row := db.QueryRow(query, username, email, account)
+	var name string
+	err := row.Scan(&name)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ""
+		}
+		fmt.Println(err)
+		return ""
+	}
+	return name
+}
+
+func GetPasswordByUsernameOrEmail(username, email, account string) string {
+	query := `SELECT password FROM users WHERE username = ? OR email = ? AND account_type = ?;`
+	row := db.QueryRow(query, username, email, account)
 	var password string
 	err := row.Scan(&password)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return ""
+		}
 		fmt.Println(err)
+		return ""
 	}
 	return password
 }

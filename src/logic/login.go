@@ -90,16 +90,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		Message: "",
 	}
 
-	hashedPassword := getPassword(user)
+	hashedPassword := GetPasswordByUsernameOrEmail(user, user, "LOCAL")
 
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
-		data.Message = "Username or password is incorrect"
+		data.Message = "Invalid password or username/email"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
+	// A FIX FOR THE USERNAME
 	creds.Username = user
+
 	createSession(w, user, "LOCAL")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
