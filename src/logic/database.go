@@ -71,11 +71,11 @@ func deleteData() {
 	}
 }
 
-func checkUser(username, email string) bool {
-	query := `SELECT username, email FROM users WHERE username = ? OR email = ?;`
-	row := db.QueryRow(query, username, email)
-	var dbUsername, dbEmail string
-	err := row.Scan(&dbUsername, &dbEmail)
+func checkUserMail(email, account string) bool {
+	query := `SELECT email FROM users WHERE email = ? AND account_type = ?;`
+	row := db.QueryRow(query, email, account)
+	var mail string
+	err := row.Scan(&mail)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false
@@ -97,7 +97,6 @@ func getPassword(username string) string {
 	return password
 }
 
-// Change password where forget_password_token = code
 func changeResetPassword(code, password string) {
 	query := `UPDATE users SET password = ? WHERE forget_password_token = ?;`
 	_, err := db.Exec(query, password, code)
@@ -108,7 +107,6 @@ func changeResetPassword(code, password string) {
 	fmt.Println("Password changed")
 }
 
-// Set null where forget_password_token = code
 func clearForgetPasswordToken(code string) {
 	query := `UPDATE users SET forget_password_token = NULL WHERE forget_password_token = ?;`
 	_, err := db.Exec(query, code)

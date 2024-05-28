@@ -68,16 +68,16 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to generate hashed password")
 	}
 
-	if checkUser(username, email) {
+	if checkUserMail(email, "LOCAL") {
 		data.Message = "Username or email already exists"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
+	newUser(username, email, string(hashedPassword), "", "LOCAL")
+
 	creds.Username = username
 	createSession(w, username, "LOCAL")
-
-	newUser(username, email, string(hashedPassword), "Default.jpg", "LOCAL")
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -108,17 +108,17 @@ func Login(w http.ResponseWriter, r *http.Request) {
 func Forgot(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 
+	code := generateRandomCode()
+
 	data := ErrorMessage{
 		Message: "",
 	}
 
-	if !checkUser("", email) {
+	if !checkUserMail(email, "LOCAL") {
 		data.Message = "Email does not exist"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
-
-	code := generateRandomCode()
 
 	EmailSend("Password Reset", code, []string{email})
 	setForgetPasswordToken(email, code)
@@ -229,13 +229,15 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse Github user data")
 	}
 
+	if checkUserMail(githubUser.Email, "GITHUB") {
+		fmt.Println("Welcome back!")
+	} else {
+		newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
+	}
+
 	creds.Username = githubUser.Name
 
 	createSession(w, githubUser.Name, "GITHUB")
-
-	if !checkUser(githubUser.Name, githubUser.Email) {
-		newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
-	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -355,13 +357,15 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse Google user data")
 	}
 
+	if checkUserMail(googleUser.Email, "GOOGLE") {
+		fmt.Println("Welcome back!")
+	} else {
+		newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
+	}
+
 	creds.Username = googleUser.Name
 
 	createSession(w, googleUser.Name, "GOOGLE")
-
-	if !checkUser(googleUser.Name, googleUser.Email) {
-		newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
-	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
