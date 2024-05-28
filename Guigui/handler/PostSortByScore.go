@@ -4,7 +4,7 @@ import (
     "database/sql"
     "net/http"
     "html/template"
-    _ "github.com/mattn/go-sqlite3"
+    "github.com/mattn/go-sqlite3"
 )
 
 func ViewPost(w http.ResponseWriter, r *http.Request) {
