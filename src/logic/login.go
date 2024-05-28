@@ -63,21 +63,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	creds.Username = username
-
-	sessionToken := time.Now().Format("2006-01-02 15:04:05")
-	expiresAt := time.Now().Add(120 * time.Second)
-
-	sessions[sessionToken] = Session{
-		Username: creds.Username,
-		Method:   "LOCAL",
-		expiry:   expiresAt,
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   sessionToken,
-		Expires: expiresAt,
-	})
+	createSession(w, username, "LOCAL")
 
 	newUser(username, email, string(hashedPassword), "Default.jpg", "LOCAL")
 
@@ -102,23 +88,33 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	creds.Username = user
+	createSession(w, user, "LOCAL")
 
-	sessionToken := time.Now().Format("2006-01-02 15:04:05")
-	expiresAt := time.Now().Add(120 * time.Second)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
 
-	sessions[sessionToken] = Session{
-		Username: creds.Username,
-		Method:   "LOCAL",
-		expiry:   expiresAt,
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			http.Redirect(w, r, "/register", http.StatusSeeOther)
+			return
+		}
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+
+	sessionToken := c.Value
+
+	delete(sessions, sessionToken)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:    "session_token",
-		Value:   sessionToken,
-		Expires: expiresAt,
+		Value:   "",
+		Expires: time.Now(),
 	})
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/register", http.StatusSeeOther)
 }
 
 func getHashedPassword(username string) string {
@@ -135,6 +131,17 @@ func getHashedPassword(username string) string {
 	}
 
 	return hashedPassword
+}
+
+func isUserLoggedIn(r *http.Request) bool {
+	c, err := r.Cookie("session_token")
+	if err != nil || err == http.ErrNoCookie {
+		return false
+	}
+
+	sessionToken := c.Value
+	_, exists := sessions[sessionToken]
+	return exists
 }
 
 ////////////////////////
@@ -169,26 +176,11 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	creds.Username = githubUser.Name
 
-	sessionToken := time.Now().Format("2006-01-02 15:04:05")
-	expiresAt := time.Now().Add(120 * time.Second)
-
-	sessions[sessionToken] = Session{
-		Username: creds.Username,
-		Method:   "GITHUB",
-		expiry:   expiresAt,
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   sessionToken,
-		Expires: expiresAt,
-	})
+	createSession(w, githubUser.Name, "GITHUB")
 
 	if !checkUser(githubUser.Name, githubUser.Email) {
 		newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
 	}
-
-	fmt.Println(sessions)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -310,20 +302,7 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	creds.Username = googleUser.Name
 
-	sessionToken := time.Now().Format("2006-01-02 15:04:05")
-	expiresAt := time.Now().Add(120 * time.Second)
-
-	sessions[sessionToken] = Session{
-		Username: creds.Username,
-		Method:   "GOOGLE",
-		expiry:   expiresAt,
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:    "session_token",
-		Value:   sessionToken,
-		Expires: expiresAt,
-	})
+	createSession(w, googleUser.Name, "GOOGLE")
 
 	if !checkUser(googleUser.Name, googleUser.Email) {
 		newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
@@ -394,4 +373,27 @@ func getGoogleUserData(accessToken string) string {
 	respbody, _ := io.ReadAll(resp.Body)
 
 	return string(respbody)
+}
+
+func createSession(w http.ResponseWriter, username, method string) {
+	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+	expiresAt := time.Now().Add(120 * time.Second)
+
+	sessions[sessionToken] = Session{
+		Username: username,
+		Method:   method,
+		expiry:   expiresAt,
+	}
+
+	cookie := http.Cookie{
+		Name:     "session_token",
+		Value:    sessionToken,
+		Expires:  expiresAt,
+		Path:     "/",
+		SameSite: http.SameSiteLaxMode,
+		Secure:   true,
+		HttpOnly: true,
+	}
+
+	http.SetCookie(w, &cookie)
 }

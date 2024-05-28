@@ -36,30 +36,37 @@ func HandleAll() {
 	http.HandleFunc("/login/google/", googleLoginHandler)
 	http.HandleFunc("/login/google/callback", googleCallbackHandler)
 
+	http.HandleFunc("/logout", logoutHandler)
+
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			w.WriteHeader(http.StatusUnauthorized)
+			RenderTemplateGlobal(w, "templates/index.html", nil)
 			return
 		}
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	sessionToken := c.Value
 
+	sessionToken := c.Value
 	userSession, exists := sessions[sessionToken]
 	if !exists {
-		fmt.Println("Session not found")
+		RenderTemplateGlobal(w, "templates/index.html", nil)
+		return
 	}
 
 	RenderTemplateGlobal(w, "templates/index.html", userSession)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if r.Method == http.MethodPost {
 		Register(w, r)
 		return
@@ -68,9 +75,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if r.Method == http.MethodPost {
 		Login(w, r)
 		return
 	}
-	RenderTemplateWithoutData(w, "templates/register.html")
+	RenderTemplateWithoutData(w, "templates/login.html")
 }
