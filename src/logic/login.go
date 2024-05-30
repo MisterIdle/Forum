@@ -33,15 +33,12 @@ type ErrorMessage struct {
 
 type Session struct {
 	Username string
-	Method   string
 	expiry   time.Time
 }
 
 type Credentials struct {
 	Username string
 }
-
-var creds Credentials
 
 ////////////////////////
 // USER AUTH LOGIC /////
@@ -63,47 +60,34 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		log.Panic("Failed to generate hashed password")
-	}
+	hashedPassword := hashedPassword(password)
 
-	if checkUserMail(email, "LOCAL") {
-		data.Message = "Username or email already exists"
+	if checkUserMailOrIdentidy(email) {
+		data.Message = "Email already exists"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
-	newUser(username, email, string(hashedPassword), "", "LOCAL")
+	newUser(username, email, string(hashedPassword), "LOCAL", "Default.png")
 
-	creds.Username = username
-	createSession(w, username, "LOCAL")
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, "/username", http.StatusSeeOther)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 
-	data := ErrorMessage{
-		Message: "",
-	}
+	data := ErrorMessage{Message: ""}
 
-	hashedPassword := GetPasswordByUsernameOrEmail(user, user, "LOCAL")
+	hashedPassword, username := getCredentialsByUsernameOrEmail(user)
 
-	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
-	if err != nil {
+	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
 		data.Message = "Invalid password or username/email"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
-	// A FIX FOR THE USERNAME
-	creds.Username = user
-
-	createSession(w, user, "LOCAL")
-
+	createSession(w, username)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
@@ -116,16 +100,17 @@ func Forgot(w http.ResponseWriter, r *http.Request) {
 		Message: "",
 	}
 
-	if !checkUserMail(email, "LOCAL") {
+	if !checkUserMailOrIdentidy(email) {
 		data.Message = "Email does not exist"
 		RenderTemplateGlobal(w, "templates/register.html", data)
 		return
 	}
 
-	EmailSend("Password Reset", code, []string{email})
-	setForgetPasswordToken(email, code)
+	sendEmail("Password Reset", code, []string{email})
+	setCodeByEmail(email, code)
 
 	http.Redirect(w, r, "/reset", http.StatusSeeOther)
+
 }
 
 func Reset(w http.ResponseWriter, r *http.Request) {
@@ -143,21 +128,23 @@ func Reset(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !getForgetPasswordToken(code) {
-		data.Message = "Invalid code"
-		RenderTemplateGlobal(w, "templates/register.html", data)
-		return
-	}
+	email := getEmailFromCode(code)
 
+	hashedPassword := hashedPassword(password)
+
+	resetPassword(email, hashedPassword)
+	resetCode(email)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+
+}
+
+func hashedPassword(password string) string {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Panic("Failed to generate hashed password")
 	}
-
-	changeResetPassword(code, string(hashedPassword))
-	clearForgetPasswordToken(code)
-
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	return string(hashedPassword)
 }
 
 func generateRandomCode() string {
@@ -165,7 +152,7 @@ func generateRandomCode() string {
 	return code
 }
 
-func EmailSend(subject string, body string, to []string) {
+func sendEmail(subject string, body string, to []string) {
 	auth := smtp.PlainAuth(
 		"",
 		FORGOT_EMAIL,
@@ -222,24 +209,22 @@ func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
 
 	var githubUser struct {
 		Name      string `json:"login"`
-		Email     string `json:"email"`
+		ID        int    `json:"id"`
 		AvatarURL string `json:"avatar_url"`
 	}
 
 	err := json.Unmarshal([]byte(githubData), &githubUser)
 	if err != nil {
-		log.Panic("Failed to parse Github user data")
+		log.Panicf("Failed to parse Github user data: %v", err) // Include error details
 	}
 
-	if checkUserMail(githubUser.Email, "GITHUB") {
-		fmt.Println("Welcome back!")
+	if checkUserMailOrIdentidy(fmt.Sprint(githubUser.ID)) {
+		fmt.Println("Welcome Back: " + githubUser.Name)
 	} else {
-		newUser(githubUser.Name, githubUser.Email, "", githubUser.AvatarURL, "GITHUB")
+		newUser(githubUser.Name, "GITHUB", "GITHUB", fmt.Sprint(githubUser.ID), githubUser.AvatarURL)
 	}
 
-	creds.Username = githubUser.Name
-
-	createSession(w, githubUser.Name, "GITHUB")
+	createSession(w, githubUser.Name)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -345,13 +330,12 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	code := r.URL.Query().Get("code")
 
 	googleAccessToken := getGoogleAccessToken(code)
-
 	googleUserData := getGoogleUserData(googleAccessToken)
 
 	var googleUser struct {
-		Email   string `json:"email"`
-		Name    string `json:"name"`
-		Picture string `json:"picture"`
+		Name      string `json:"name"`
+		ID        string `json:"id"`
+		AvatarURL string `json:"picture"`
 	}
 
 	err := json.Unmarshal([]byte(googleUserData), &googleUser)
@@ -359,15 +343,13 @@ func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
 		log.Panic("Failed to parse Google user data")
 	}
 
-	if checkUserMail(googleUser.Email, "GOOGLE") {
-		fmt.Println("Welcome back!")
+	if checkUserMailOrIdentidy(googleUser.ID) {
+		fmt.Println("Welcome Back: " + googleUser.Name)
 	} else {
-		newUser(googleUser.Name, googleUser.Email, "", googleUser.Picture, "GOOGLE")
+		newUser(googleUser.Name, "GOOGLE", "GOOGLE", googleUser.ID, googleUser.AvatarURL)
 	}
 
-	creds.Username = googleUser.Name
-
-	createSession(w, googleUser.Name, "GOOGLE")
+	createSession(w, googleUser.Name)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -436,13 +418,12 @@ func getGoogleUserData(accessToken string) string {
 	return string(respbody)
 }
 
-func createSession(w http.ResponseWriter, username, method string) {
+func createSession(w http.ResponseWriter, username string) {
 	sessionToken := time.Now().Format("2006-01-02 15:04:05")
 	expiresAt := time.Now().Add(120 * time.Second)
 
 	sessions[sessionToken] = Session{
 		Username: username,
-		Method:   method,
 		expiry:   expiresAt,
 	}
 

@@ -34,16 +34,15 @@ func InitData() {
 func createData() {
 	query := `
 	CREATE TABLE Users (
-		user_id INTEGER PRIMARY KEY,
 		uuid TEXT UNIQUE,
 		username VARCHAR,
 		email VARCHAR,
 		password VARCHAR,
-		creation_date DATETIME,
+		identity TEXT,
+		code TEXT,
+		creation DATETIME,
 		rank_id INTEGER,
-		profile_picture VARCHAR,
-		account_type VARCHAR,
-		forget_password_token TEXT,
+		picture VARCHAR,
 		FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
 	);
 	
@@ -71,103 +70,95 @@ func deleteData() {
 	}
 }
 
-func checkUserMail(email, account string) bool {
-	query := `SELECT email FROM users WHERE email = ? AND account_type = ?;`
-	row := db.QueryRow(query, email, account)
-	var mail string
-	err := row.Scan(&mail)
+func checkUserMailOrIdentidy(identifier string) bool {
+	query := `SELECT COALESCE(email, identity) FROM users WHERE email = ? OR identity = ?;`
+	row := db.QueryRow(query, identifier, identifier)
+	var result string
+	err := row.Scan(&result)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return false
 		}
 		fmt.Println(err)
-		return true
+		return false
 	}
 	return true
 }
 
-func GetUsernameByEmail(username, email, account string) string {
-	query := `SELECT username FROM users WHERE username = ? OR email = ? AND account_type = ?;`
-	row := db.QueryRow(query, username, email, account)
-	var name string
-	err := row.Scan(&name)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return ""
-		}
-		fmt.Println(err)
-		return ""
-	}
-	return name
-}
-
-func GetPasswordByUsernameOrEmail(username, email, account string) string {
-	query := `SELECT password FROM users WHERE username = ? OR email = ? AND account_type = ?;`
-	row := db.QueryRow(query, username, email, account)
-	var password string
-	err := row.Scan(&password)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return ""
-		}
-		fmt.Println(err)
-		return ""
-	}
-	return password
-}
-
-func changeResetPassword(code, password string) {
-	query := `UPDATE users SET password = ? WHERE forget_password_token = ?;`
-	_, err := db.Exec(query, password, code)
+func setCodeByEmail(email, code string) error {
+	query := `UPDATE users SET code = ? WHERE email = ?;`
+	_, err := db.Exec(query, code, email)
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
-
-	fmt.Println("Password changed")
+	return nil
 }
 
-func clearForgetPasswordToken(code string) {
-	query := `UPDATE users SET forget_password_token = NULL WHERE forget_password_token = ?;`
-	_, err := db.Exec(query, code)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func setForgetPasswordToken(email, token string) {
-	query := `UPDATE users SET forget_password_token = ? WHERE email = ?;`
-	_, err := db.Exec(query, token, email)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
-
-func getForgetPasswordToken(code string) bool {
-	query := `SELECT forget_password_token FROM users WHERE forget_password_token = ?;`
+func getEmailFromCode(code string) string {
+	query := `SELECT email FROM users WHERE code = ?;`
 	row := db.QueryRow(query, code)
-	var token string
-	err := row.Scan(&token)
+	var email string
+	err := row.Scan(&email)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return false
+			return ""
 		}
 		fmt.Println(err)
-		return true
+		return ""
 	}
-	return true
+	return email
 }
 
-func newUser(username, email, password, profile_picture, account string) error {
+func resetPassword(email, password string) error {
+	query := `UPDATE users SET password = ? WHERE email = ?;`
+	_, err := db.Exec(query, password, email)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func resetCode(email string) error {
+	query := `UPDATE users SET code = null WHERE email = ?;`
+	_, err := db.Exec(query, email)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
+	query := `SELECT password, COALESCE(username, email) FROM users WHERE username = ? OR email = ?;`
+	row := db.QueryRow(query, identifier, identifier)
+	var password, username string
+	err := row.Scan(&password, &username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ""
+		}
+		fmt.Println(err)
+		return "", ""
+	}
+	return password, username
+}
+
+func newUser(username, email, password, identity, picture string) error {
 	uuid, err := uuid.NewV4()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	query := `INSERT INTO users (uuid, username, email, password, creation_date, rank_id, profile_picture, account_type) VALUES (?, ?, ?, ?, datetime('now'), 1, ?, ?);`
-	_, err = db.Exec(query, uuid.String(), username, email, password, profile_picture, account)
+	// Set code to null if empty
+
+	query := `INSERT INTO users (uuid, username, email, password, identity, code, creation, rank_id, picture) VALUES (?, ?, ?, ?, ?, null, datetime('now'), 1, ?);`
+	_, err = db.Exec(query, uuid.String(), username, email, password, identity, picture)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
+
 	return nil
 }
