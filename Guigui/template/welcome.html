@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Welcome to the Forum</title>
+    <style>
+        .container {
+            margin: 20px;
+        }
+        .post-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+        .post-content {
+            flex-grow: 1;
+        }
+        .post-image {
+            max-width: 50px;
+            max-height: 50px;
+            margin-left: 10px;
+        }
+        .comment-count {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .preview-container img {
+            max-width: 100px;
+            margin: 5px;
+        }
+    </style>
+    <script>
+        function validatePostForm() {
+            const categorySelect = document.getElementById('category_id');
+            if (categorySelect.value === '') {
+                alert('Please select a category');
+                return false;
+            }
+            return true;
+        }
+
+        function previewImages(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('image-previews');
+            previewContainer.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Welcome to the Forum</h1>
+    <div class="container">
+        <h2>Create a Post</h2>
+        <form action="/create/post" method="post" enctype="multipart/form-data" onsubmit="return validatePostForm()">
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required>
+            <br>
+            <label for="content">Content:</label>
+            <textarea id="content" name="content" required></textarea>
+            <br>
+            <label for="category_id">Category:</label>
+            <select id="category_id" name="category_id" required>
+                <option value="">Select a category</option>
+                {{range .Categories}}
+                    <option value="{{.CategoryID}}">{{.Name}}</option>
+                {{end}}
+            </select>
+            <br>
+            <label for="images">Images:</label>
+            <input type="file" id="images" name="images" accept="image/*" multiple onchange="previewImages(event)">
+            <br>
+            <div id="image-previews" class="preview-container"></div>
+            <br>
+            <button type="submit">Create Post</button>
+        </form>
+    </div>
+
+    <div class="container">
+        <h2>Popular Posts</h2>
+        <div class="post-list">
+            {{range .Posts}}
+                <div class="post-preview">
+                    <div class="post-content">
+                        <a href="/post?id={{.PostID}}"><strong>{{.Title}}</strong></a>
+                        <p>{{.ContentPreview}}</p>
+                        <p class="comment-count">{{.CommentCount}} comments</p>
+                    </div>
+                    {{if .FirstImage}}
+                        <img src="/{{.FirstImage}}" alt="Post Image" class="post-image">
+                    {{end}}
+                </div>
+            {{else}}
+                <p>No posts available.</p>
+            {{end}}
+        </div>
+    </div>
+</body>
+</html>

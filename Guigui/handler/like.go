@@ -9,8 +9,9 @@ import (
 func LikeComment(w http.ResponseWriter, r *http.Request) {
     if r.Method == http.MethodPost {
         commentID := r.FormValue("comment_id")
-        userID := r.FormValue("user_id") // Assume you get user_id from session in real implementation
-        likeType := r.FormValue("type") // "like" or "dislike"
+        userID := r.FormValue("user_id") 
+        likeType := r.FormValue("type")
+        postID := r.FormValue("post_id")
 
         db, _ := sql.Open("sqlite3", "./Forum3.db")
         defer db.Close()
@@ -48,7 +49,6 @@ func LikeComment(w http.ResponseWriter, r *http.Request) {
             return
         }
 
-        postID := r.FormValue("post_id")
-        http.Redirect(w, r, "/post/"+postID, http.StatusSeeOther)
+        http.Redirect(w, r, "/post?id="+postID, http.StatusSeeOther)
     }
 }

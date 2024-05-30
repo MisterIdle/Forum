@@ -4,7 +4,8 @@ import (
     "database/sql"
     "net/http"
     "html/template"
-    "github.com/mattn/go-sqlite3"
+    "strings"
+    _ "github.com/mattn/go-sqlite3"
 )
 
 func ViewPost(w http.ResponseWriter, r *http.Request) {
@@ -13,24 +14,21 @@ func ViewPost(w http.ResponseWriter, r *http.Request) {
     db, _ := sql.Open("sqlite3", "./Forum3.db")
     defer db.Close()
 
-    var post struct {
-        PostID    int
-        Content   string
-        Timestamp string
-        Username  string
-    }
+    var post Post
+    var imagePaths string
     err := db.QueryRow(`
-        SELECT p.post_id, p.content, p.timestamp, u.username 
+        SELECT p.post_id, p.title, p.content, p.timestamp, u.username, p.image_paths 
         FROM Posts p
         JOIN Users u ON p.user_id = u.user_id
-        WHERE p.post_id = ?`, postID).Scan(&post.PostID, &post.Content, &post.Timestamp, &post.Username)
+        WHERE p.post_id = ?`, postID).Scan(&post.PostID, &post.Title, &post.Content, &post.Timestamp, &post.Username, &imagePaths)
     if err != nil {
         http.Error(w, "Error retrieving post", http.StatusInternalServerError)
         return
     }
+    post.ImagePaths = strings.Split(imagePaths, ",")
 
     rows, err := db.Query(`
-        SELECT c.comment_id, c.content, c.timestamp, u.username, c.score
+        SELECT c.comment_id, c.content, c.timestamp, u.username, c.score, c.image_paths
         FROM Comments c
         JOIN Users u ON c.user_id = u.user_id
         WHERE c.post_id = ?
@@ -41,32 +39,22 @@ func ViewPost(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var comments []struct {
-        CommentID int
-        Content   string
-        Timestamp string
-        Username  string
-        Score     int
-    }
+    var comments []Comment
     for rows.Next() {
-        var comment struct {
-            CommentID int
-            Content   string
-            Timestamp string
-            Username  string
-            Score     int
-        }
-        if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Username, &comment.Score); err != nil {
+        var comment Comment
+        var imagePaths string
+        if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Username, &comment.Score, &imagePaths); err != nil {
             http.Error(w, "Error scanning comments", http.StatusInternalServerError)
             return
         }
+        comment.ImagePaths = strings.Split(imagePaths, ",")
         comments = append(comments, comment)
     }
 
     tmpl, _ := template.ParseFiles("templates/view_post.html")
     tmpl.Execute(w, struct {
-        Post     interface{}
-        Comments interface{}
+        Post     Post
+        Comments []Comment
     }{
         Post:     post,
         Comments: comments,

@@ -4,6 +4,7 @@ import (
     "database/sql"
     "net/http"
     "html/template"
+    "strings"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -14,9 +15,9 @@ func ViewCategoryPosts(w http.ResponseWriter, r *http.Request) {
     defer db.Close()
 
     rows, err := db.Query(`
-        SELECT p.post_id, p.content, p.timestamp, u.username 
+        SELECT p.post_id, p.title, p.content, p.image_paths, 
+               (SELECT COUNT(*) FROM Comments c WHERE c.post_id = p.post_id) as comment_count
         FROM Posts p
-        JOIN Users u ON p.user_id = u.user_id
         WHERE p.category_id = ?
         ORDER BY p.timestamp DESC`, categoryID)
     if err != nil {
@@ -25,26 +26,25 @@ func ViewCategoryPosts(w http.ResponseWriter, r *http.Request) {
     }
     defer rows.Close()
 
-    var posts []struct {
-        PostID    int
-        Content   string
-        Timestamp string
-        Username  string
-    }
+    var posts []PostPreview
     for rows.Next() {
-        var post struct {
-            PostID    int
-            Content   string
-            Timestamp string
-            Username  string
-        }
-        if err := rows.Scan(&post.PostID, &post.Content, &post.Timestamp, &post.Username); err != nil {
+        var post PostPreview
+        var content string
+        var imagePaths string
+        if err := rows.Scan(&post.PostID, &post.Title, &content, &imagePaths, &post.CommentCount); err != nil {
             http.Error(w, "Error scanning posts", http.StatusInternalServerError)
             return
+        }
+        post.ContentPreview = getPreview(content, 2)
+        if imagePaths != "" {
+            post.FirstImage = strings.Split(imagePaths, ",")[0]
         }
         posts = append(posts, post)
     }
 
     tmpl, _ := template.ParseFiles("templates/view_category_posts.html")
-    tmpl.Execute(w, posts)
+    tmpl.Execute(w, CategoryPostsData{
+        CategoryID: atoi(categoryID),
+        Posts:      posts,
+    })
 }

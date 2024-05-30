@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Categories</title>
+</head>
+<body>
+    <h1>Categories</h1>
+    <ul>
+    {{range .}}
+        <li><a href="/view_category?id={{.CategoryID}}">{{.Name}}</a> </li>
+    {{else}}
+        <li>No categories available.</li>
+    {{end}}
+    </ul>
+    <a href="/">Back to Welcome</a>
+</body>
+</html>
