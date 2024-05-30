@@ -36,22 +36,31 @@ func HandleAll() {
 
 }
 
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
+func getActualSession(r *http.Request) Session {
 	c, err := r.Cookie("session_token")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			RenderTemplateGlobal(w, "templates/index.html", nil)
-			return
+			return Session{}
 		}
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+		return Session{}
 	}
 
 	sessionToken := c.Value
-	userSession, exists := sessions[sessionToken]
-	if !exists {
-		RenderTemplateGlobal(w, "templates/index.html", nil)
-		return
+	userSession, ok := sessions[sessionToken]
+	if !ok {
+		return Session{}
+	}
+
+	return userSession
+}
+
+func HomeHandler(w http.ResponseWriter, r *http.Request) {
+
+	userSession := getActualSession(r)
+
+	if userSession.Username == "" {
+		userSession.Username = "Guest"
+		userSession.IsLoggedIn = false
 	}
 
 	RenderTemplateGlobal(w, "templates/index.html", userSession)

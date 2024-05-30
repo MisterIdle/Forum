@@ -30,7 +30,6 @@ func InitData() {
 	fmt.Println("Database initialized")
 }
 
-// NORMAL, GITHUB OR GOOGLE ACCOUNT
 func createData() {
 	query := `
 	CREATE TABLE Users (
@@ -83,6 +82,23 @@ func checkUserMailOrIdentidy(identifier string) bool {
 		return false
 	}
 	return true
+}
+
+// Get uuid, date, rank_id, picture from username
+func getUserInfoByMailOrIdentidy(identifier string) (string, string, int, string) {
+	query := `SELECT uuid, creation, rank_id, picture FROM users WHERE email = ? OR identity = ?;`
+	row := db.QueryRow(query, identifier, identifier)
+	var uuid, creation, picture string
+	var rank_id int
+	err := row.Scan(&uuid, &creation, &rank_id, &picture)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", "", 0, ""
+		}
+		fmt.Println(err)
+		return "", "", 0, ""
+	}
+	return uuid, creation, rank_id, picture
 }
 
 func setCodeByEmail(email, code string) error {
@@ -151,7 +167,6 @@ func newUser(username, email, password, identity, picture string) error {
 		fmt.Println(err)
 		return err
 	}
-	// Set code to null if empty
 
 	query := `INSERT INTO users (uuid, username, email, password, identity, code, creation, rank_id, picture) VALUES (?, ?, ?, ?, ?, null, datetime('now'), 1, ?);`
 	_, err = db.Exec(query, uuid.String(), username, email, password, identity, picture)

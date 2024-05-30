@@ -32,8 +32,13 @@ type ErrorMessage struct {
 }
 
 type Session struct {
-	Username string
-	expiry   time.Time
+	Username   string
+	UUID       string
+	Date       string
+	Rank       int
+	Picture    string
+	IsLoggedIn bool
+	expiry     time.Time
 }
 
 type Credentials struct {
@@ -419,13 +424,20 @@ func getGoogleUserData(accessToken string) string {
 	return string(respbody)
 }
 
-func createSession(w http.ResponseWriter, username string) {
+func createSession(w http.ResponseWriter, identifier string) {
 	sessionToken := time.Now().Format("2006-01-02 15:04:05")
 	expiresAt := time.Now().Add(120 * time.Second)
 
+	// BUG ICI A FIX AU PLUS VITE !!
+	uuid, date, rank_id, picture := getUserData(identifier)
+
 	sessions[sessionToken] = Session{
-		Username: username,
-		expiry:   expiresAt,
+		UUID:       uuid,
+		Date:       date,
+		Rank:       rank_id,
+		Picture:    picture,
+		IsLoggedIn: true,
+		expiry:     expiresAt,
 	}
 
 	cookie := http.Cookie{

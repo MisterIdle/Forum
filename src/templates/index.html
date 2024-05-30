@@ -7,8 +7,12 @@
 </head>
 <body>
     <h1>Bienvenue {{.Username}}</h1>
-    <p>Vous êtes sur la page d'accueil</p>
-    
-    <a href="/logout">Se déconnecter</a>
+    <h2>UUID : {{.UUID}}</h2>
+
+    {{if .IsLoggedIn}}
+        <a href="/logout">Se déconnecter</a>
+    {{else}}
+        <a href="/login">Se connecter</a>
+    {{end}}
 </body>
 </html>
