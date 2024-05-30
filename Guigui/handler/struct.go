@@ -50,3 +50,20 @@ type CategoryPostsData struct {
     CategoryID int
     Posts      []PostPreview
 }
+
+type SearchResult struct {
+    Posts []PostResult `json:"posts"`
+    Users []UserResult `json:"users"`
+}
+
+type PostResult struct {
+    PostID       int    `json:"post_id"`
+    Title        string `json:"title"`
+    CategoryName string `json:"category_name"`
+    UniqueUsers  int    `json:"unique_users"`
+}
+
+type UserResult struct {
+    UserID   int    `json:"user_id"`
+    Username string `json:"username"`
+}

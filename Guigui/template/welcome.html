@@ -29,6 +29,31 @@
             max-width: 100px;
             margin: 5px;
         }
+        .search-container {
+            position: relative;
+            float: right;
+            margin-right: 20px;
+        }
+        .search-results {
+            position: absolute;
+            background: white;
+            border: 1px solid #ccc;
+            max-height: 200px;
+            overflow-y: auto;
+            width: 300px;
+            right: 0;
+        }
+        .search-results div {
+            padding: 10px;
+            cursor: pointer;
+        }
+        .search-results div:hover {
+            background: #f0f0f0;
+        }
+        .search-results .post-result, .search-results .user-result {
+            border-bottom: 1px solid #ddd;
+            padding: 5px;
+        }
     </style>
     <script>
         function validatePostForm() {
@@ -43,7 +68,7 @@
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');
-            previewContainer.innerHTML = '';
+            previewContainer.innerHTML = ''; // Clear existing previews
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -56,9 +81,48 @@
                 reader.readAsDataURL(file);
             }
         }
+
+        async function searchPosts(query) {
+            const response = await fetch('/search?query=' + encodeURIComponent(query));
+            const results = await response.json();
+            const suggestions = document.getElementById('search-suggestions');
+            suggestions.innerHTML = ''; // Clear existing suggestions
+
+            if (results.posts.length > 0) {
+                const postSection = document.createElement('div');
+                postSection.innerHTML = '<strong>Posts:</strong>';
+                suggestions.appendChild(postSection);
+                results.posts.forEach(post => {
+                    const div = document.createElement('div');
+                    div.classList.add('post-result');
+                    div.innerHTML = `<strong>${post.title}</strong><br>
+                                     <small>Category: ${post.category_name}</small><br>
+                                     <small>Unique Commenters: ${post.unique_users}</small>`;
+                    div.onclick = () => window.location.href = '/post?id=' + post.post_id;
+                    suggestions.appendChild(div);
+                });
+            }
+
+            if (results.users.length > 0) {
+                const userSection = document.createElement('div');
+                userSection.innerHTML = '<strong>Community:</strong>';
+                suggestions.appendChild(userSection);
+                results.users.forEach(user => {
+                    const div = document.createElement('div');
+                    div.classList.add('user-result');
+                    div.textContent = user.username;
+                    div.onclick = () => window.location.href = '/user?id=' + user.user_id;
+                    suggestions.appendChild(div);
+                });
+            }
+        }
     </script>
 </head>
 <body>
+    <div class="search-container">
+        <input type="text" id="search-input" placeholder="Search posts or users" oninput="searchPosts(this.value)">
+        <div id="search-suggestions" class="search-results"></div>
+    </div>
     <h1>Welcome to the Forum</h1>
     <div class="container">
         <h2>Create a Post</h2>
