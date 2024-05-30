@@ -17,12 +17,6 @@ function toggleForm(formId) {
             forgotForm.style.display = 'none';
             resetForm.style.display = 'none';
             break;
-        case 'usernameForm':
-            registerForm.style.display = 'none';
-            loginForm.style.display = 'none';
-            forgotForm.style.display = 'none';
-            resetForm.style.display = 'none';
-            break;
         case 'forgotForm':
             registerForm.style.display = 'none';
             loginForm.style.display = 'none';
@@ -53,8 +47,4 @@ if (window.location.pathname === '/forgot') {
 
 if (window.location.pathname === '/reset') {
     toggleForm('resetForm');
-}
-
-if (window.location.pathname === '/username') {
-    toggleForm('usernameForm');
 }

@@ -131,7 +131,7 @@ func resetCode(email string) error {
 }
 
 func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
-	query := `SELECT password, COALESCE(username, email) FROM users WHERE username = ? OR email = ?;`
+	query := `SELECT password, COALESCE(username, email) FROM users WHERE username = ? OR email = ? AND identity = 'LOCAL';`
 	row := db.QueryRow(query, identifier, identifier)
 	var password, username string
 	err := row.Scan(&password, &username)

@@ -69,8 +69,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	newUser(username, email, string(hashedPassword), "LOCAL", "Default.png")
+	createSession(w, username)
 
-	http.Redirect(w, r, "/username", http.StatusSeeOther)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func Login(w http.ResponseWriter, r *http.Request) {
