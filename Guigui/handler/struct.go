@@ -23,6 +23,15 @@ type Comment struct {
     ImagePaths []string
 }
 
+type WelcomeData struct {
+    Categories       []Category
+    Posts            []PostPreview
+    PostCount        int
+    CommentCount     int
+    UniqueUserCount  int
+    LatestMember     string
+}
+
 type PostPreview struct {
     PostID          int
     Title           string
@@ -30,11 +39,6 @@ type PostPreview struct {
     FirstImage      string
     CommentCount    int
     PopularityScore float64
-}
-
-type WelcomeData struct {
-    Categories []Category
-    Posts      []PostPreview
 }
 
 type PostFormData struct {

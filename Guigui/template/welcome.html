@@ -54,6 +54,12 @@
             border-bottom: 1px solid #ddd;
             padding: 5px;
         }
+        .stats-container {
+            margin-top: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
     </style>
     <script>
         function validatePostForm() {
@@ -68,7 +74,7 @@
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');
-            previewContainer.innerHTML = ''; // Clear existing previews
+            previewContainer.innerHTML = '';
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -86,7 +92,7 @@
             const response = await fetch('/search?query=' + encodeURIComponent(query));
             const results = await response.json();
             const suggestions = document.getElementById('search-suggestions');
-            suggestions.innerHTML = ''; // Clear existing suggestions
+            suggestions.innerHTML = ''; 
 
             if (results.posts.length > 0) {
                 const postSection = document.createElement('div');
@@ -112,7 +118,7 @@
                     div.classList.add('user-result');
                     div.textContent = user.username;
                     div.onclick = () => window.location.href = '/user?id=' + user.user_id;
-                    suggestions.appendChild(div);
+                    suggestions.append.appendChild(div);
                 });
             }
         }
@@ -124,6 +130,12 @@
         <div id="search-suggestions" class="search-results"></div>
     </div>
     <h1>Welcome to the Forum</h1>
+    <div class="stats-container">
+        <p>Total Posts: {{.PostCount}}</p>
+        <p>Total Comments: {{.CommentCount}}</p>
+        <p>Unique Users: {{.UniqueUserCount}}</p>
+        <p>Latest Member: {{.LatestMember}}</p>
+    </div>
     <div class="container">
         <h2>Create a Post</h2>
         <form action="/create/post" method="post" enctype="multipart/form-data" onsubmit="return validatePostForm()">

@@ -32,15 +32,23 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
         categories = append(categories, category)
     }
 
+    var postCount, commentCount, uniqueUserCount int
+    var latestMember string
+
+    db.QueryRow(`SELECT COUNT(*) FROM Posts`).Scan(&postCount)
+    db.QueryRow(`SELECT COUNT(*) FROM Comments`).Scan(&commentCount)
+    db.QueryRow(`SELECT COUNT(DISTINCT user_id) FROM Users`).Scan(&uniqueUserCount)
+    db.QueryRow(`SELECT username FROM Users ORDER BY user_id DESC LIMIT 1`).Scan(&latestMember)
+
     rows, err = db.Query(`
         SELECT p.post_id, p.title, p.content, p.image_paths, 
                COALESCE(SUM(c.score), 0) as total_score,
-               COALESCE(COUNT(DISTINCT c.user_id), 1) as unique_users,
+               COALESCE(COUNT(DISTINCT c.user_id), 0) as unique_users,
                COUNT(c.comment_id) as comment_count
         FROM Posts p
         LEFT JOIN Comments c ON p.post_id = c.post_id
         GROUP BY p.post_id
-        ORDER BY total_score / unique_users DESC, p.timestamp DESC
+        ORDER BY total_score DESC, p.timestamp DESC
         LIMIT 10`)
     if err != nil {
         http.Error(w, "Error retrieving posts", http.StatusInternalServerError)
@@ -63,7 +71,11 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
         if imagePaths != "" {
             post.FirstImage = strings.Split(imagePaths, ",")[0]
         }
-        post.PopularityScore = totalScore / float64(uniqueUsers)
+        if uniqueUsers > 0 {
+            post.PopularityScore = totalScore / float64(uniqueUsers)
+        } else {
+            post.PopularityScore = 0
+        }
         posts = append(posts, post)
     }
 
@@ -73,8 +85,12 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
 
     tmpl, _ := template.ParseFiles("templates/welcome.html")
     tmpl.Execute(w, WelcomeData{
-        Categories: categories,
-        Posts:      posts,
+        Categories:      categories,
+        Posts:           posts,
+        PostCount:       postCount,
+        CommentCount:    commentCount,
+        UniqueUserCount: uniqueUserCount,
+        LatestMember:    latestMember,
     })
 }
 
