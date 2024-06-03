@@ -2,13 +2,13 @@ package handlers
 
 import (
     "database/sql"
+    "io"
     "net/http"
-    "html/template"
-    "strconv"
     "os"
     "path/filepath"
+    "strconv"
     "strings"
-    "io"
+    "html/template"
     _ "github.com/mattn/go-sqlite3"
 )
 

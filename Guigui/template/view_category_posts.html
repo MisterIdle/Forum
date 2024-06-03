@@ -25,6 +25,7 @@
     </style>
 </head>
 <body>
+    <button onclick="window.location.href='/'">Welcome to the Forum</button>
     <h1>Posts in Category</h1>
     <button onclick="window.location.href='/create/post?category_id={{.CategoryID}}'">Create New Post</button>
     {{range .Posts}}

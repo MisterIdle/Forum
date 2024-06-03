@@ -11,7 +11,13 @@ type Post struct {
     Content   string
     Timestamp string
     Username  string
+    UserID      int
     ImagePaths []string
+}
+
+type PostData struct {
+    Post     Post
+    Comments []Comment
 }
 
 type Comment struct {
@@ -19,6 +25,7 @@ type Comment struct {
     Content    string
     Timestamp  string
     Username   string
+    UserID      int
     Score      int
     ImagePaths []string
 }

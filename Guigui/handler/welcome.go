@@ -15,6 +15,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
     db, _ := sql.Open("sqlite3", "./Forum3.db")
     defer db.Close()
 
+    //category
     rows, err := db.Query(`SELECT category_id, name FROM Categories`)
     if err != nil {
         http.Error(w, "Error retrieving categories", http.StatusInternalServerError)
@@ -32,6 +33,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
         categories = append(categories, category)
     }
 
+    // Retrieve post statistics
     var postCount, commentCount, uniqueUserCount int
     var latestMember string
 
@@ -40,6 +42,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
     db.QueryRow(`SELECT COUNT(DISTINCT user_id) FROM Users`).Scan(&uniqueUserCount)
     db.QueryRow(`SELECT username FROM Users ORDER BY user_id DESC LIMIT 1`).Scan(&latestMember)
 
+    // Retrieve posts with score calculation
     rows, err = db.Query(`
         SELECT p.post_id, p.title, p.content, p.image_paths, 
                COALESCE(SUM(c.score), 0) as total_score,
@@ -79,6 +82,7 @@ func Welcome(w http.ResponseWriter, r *http.Request) {
         posts = append(posts, post)
     }
 
+    // Sort posts by score
     sort.Slice(posts, func(i, j int) bool {
         return posts[i].PopularityScore > posts[j].PopularityScore
     })

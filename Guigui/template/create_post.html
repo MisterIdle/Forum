@@ -16,7 +16,7 @@
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');
-            previewContainer.innerHTML = ''; // Clear existing previews
+            previewContainer.innerHTML = '';
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
@@ -52,5 +52,7 @@
         <br>
         <button type="submit">Create Post</button>
     </form>
+    <button onclick="window.location.href='/view/category?id={{.CategoryID}}'">Back to Category</button>
+    <button onclick="window.location.href='/'">Welcome to the Forum</button>
 </body>
 </html>

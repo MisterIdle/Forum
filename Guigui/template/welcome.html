@@ -60,6 +60,12 @@
             border: 1px solid #ccc;
             background-color: #f9f9f9;
         }
+        .categories-container {
+            margin-top: 20px;
+        }
+        .category-button {
+            margin: 5px;
+        }
     </style>
     <script>
         function validatePostForm() {
@@ -74,8 +80,7 @@
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');
-            previewContainer.innerHTML = '';
-
+            previewContainer.innerHTML = ''; 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const reader = new FileReader();
@@ -118,7 +123,7 @@
                     div.classList.add('user-result');
                     div.textContent = user.username;
                     div.onclick = () => window.location.href = '/user?id=' + user.user_id;
-                    suggestions.append.appendChild(div);
+                    suggestions.appendChild(div);
                 });
             }
         }
@@ -136,6 +141,16 @@
         <p>Unique Users: {{.UniqueUserCount}}</p>
         <p>Latest Member: {{.LatestMember}}</p>
     </div>
+    
+    <div class="categories-container">
+        <h2>Categories</h2>
+        {{range .Categories}}
+            <button class="category-button" onclick="window.location.href='/view_category?id={{.CategoryID}}'">{{.Name}}</button>
+        {{else}}
+            <p>No categories available.</p>
+        {{end}}
+    </div>
+    
     <div class="container">
         <h2>Create a Post</h2>
         <form action="/create/post" method="post" enctype="multipart/form-data" onsubmit="return validatePostForm()">
