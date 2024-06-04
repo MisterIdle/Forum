@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func ViewPost(w http.ResponseWriter, r *http.Request) {
+func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.URL.Query().Get("id")
 
 	db, _ := sql.Open("sqlite3", "./Forum3.db")

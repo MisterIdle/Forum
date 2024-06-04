@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func ViewCategory(w http.ResponseWriter, r *http.Request) {
+func ViewCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	categoryID := r.URL.Query().Get("id")
 
 	db, _ := sql.Open("sqlite3", "./Forum3.db")

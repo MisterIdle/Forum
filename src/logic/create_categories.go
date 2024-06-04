@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-func CreateCategory(w http.ResponseWriter, r *http.Request) {
+func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		tmpl, _ := template.ParseFiles("templates/create_category.html")
 		tmpl.Execute(w, nil)

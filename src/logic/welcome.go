@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func Welcome(w http.ResponseWriter, r *http.Request) {
+func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 	db, _ := sql.Open("sqlite3", "./Forum3.db")
 	defer db.Close()
 

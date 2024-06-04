@@ -20,7 +20,7 @@ func HandleAll() {
 	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("styles"))))
 	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("javascript"))))
 
-	http.HandleFunc("/", HomeHandler)
+	http.HandleFunc("/", WelcomeHandler)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 	http.HandleFunc("/forgot", ForgotHandler)
@@ -34,8 +34,17 @@ func HandleAll() {
 
 	http.HandleFunc("/logout", LogoutHandler)
 
-}
+	http.HandleFunc("/view/categories", ViewCategoryHandler)
+	http.HandleFunc("/view/category", ViewCategoryPostsHandler)
 
+	http.HandleFunc("/create/category", CreateCategoryHandler)
+	http.HandleFunc("/create/post", CreatePostHandler)
+	http.HandleFunc("/create/comment", CreateCommentHandler)
+	http.HandleFunc("/post", ViewPostHandler)
+
+
+}
+/*
 func getActualSession(r *http.Request) Session {
 	c, err := r.Cookie("session_token")
 	if err != nil {
@@ -64,7 +73,7 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RenderTemplateGlobal(w, "templates/index.html", userSession)
-}
+}*/
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if isUserLoggedIn(r) {

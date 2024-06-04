@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func ViewCategoryPosts(w http.ResponseWriter, r *http.Request) {
+func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	categoryID := r.URL.Query().Get("id")
 
 	db, _ := sql.Open("sqlite3", "./Forum3.db")

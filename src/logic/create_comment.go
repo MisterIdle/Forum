@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func CreateComment(w http.ResponseWriter, r *http.Request) {
+func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
 		postID := r.FormValue("post_id")
 		userID := r.FormValue("user_id")

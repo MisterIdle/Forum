@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func CreatePost(w http.ResponseWriter, r *http.Request) {
+func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		categoryID, _ := strconv.Atoi(r.URL.Query().Get("category_id"))
 		tmpl, _ := template.ParseFiles("templates/create_post.html")
