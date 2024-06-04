@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Posts in Category</title>
+    <style>
+        .post-preview {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+        .post-content {
+            flex-grow: 1;
+        }
+        .post-image {
+            max-width: 50px;
+            max-height: 50px;
+            margin-left: 10px;
+        }
+        .comment-count {
+            font-size: 0.9em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.location.href='/'">Welcome to the Forum</button>
+    <h1>Posts in Category</h1>
+    <button onclick="window.location.href='/create/post?category_id={{.CategoryID}}'">Create New Post</button>
+    {{range .Posts}}
+        <div class="post-preview">
+            <div class="post-content">
+                <a href="/post?id={{.PostID}}"><strong>{{.Title}}</strong></a>
+                <p>{{.ContentPreview}}</p>
+                <p class="comment-count">{{.CommentCount}} comments</p>
+            </div>
+            {{if .FirstImage}}
+                <img src="/{{.FirstImage}}" alt="Post Image" class="post-image">
+            {{end}}
+        </div>
+    {{else}}
+        <p>No posts available.</p>
+    {{end}}
+</body>
+</html>

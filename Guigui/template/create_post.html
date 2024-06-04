@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Create Post</title>
+    <style>
+        .preview-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .preview-container img {
+            max-width: 100px;
+            margin: 5px;
+        }
+    </style>
+    <script>
+        function previewImages(event) {
+            const files = event.target.files;
+            const previewContainer = document.getElementById('image-previews');
+            previewContainer.innerHTML = '';
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Create Post</h1>
+    {{if .Error}}
+        <p style="color:red;">{{.Error}}</p>
+    {{end}}
+    <form action="/create/post" method="post" enctype="multipart/form-data">
+        <input type="hidden" id="category_id" name="category_id" value="{{.CategoryID}}">
+        <input type="hidden" id="user_id" name="user_id" value="{{.UserID}}">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="{{.Title}}" required>
+        <br>
+        <label for="content">Content:</label>
+        <textarea id="content" name="content" required>{{.Content}}</textarea>
+        <br>
+        <label for="images">Images:</label>
+        <input type="file" id="images" name="images" accept="image/*" multiple onchange="previewImages(event)">
+        <br>
+        <div id="image-previews" class="preview-container"></div>
+        <br>
+        <button type="submit">Create Post</button>
+    </form>
+    <button onclick="window.location.href='/view/category?id={{.CategoryID}}'">Back to Category</button>
+    <button onclick="window.location.href='/'">Welcome to the Forum</button>
+</body>
+</html>

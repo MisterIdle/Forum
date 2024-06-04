@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>View Post</title>
+    <style>
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .image-container img {
+            max-width: 100px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .full-image img {
+            max-width: 100%;
+        }
+        #full-image {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #full-image img {
+            max-width: 90vw;
+            max-height: 90vh;
+        }
+        #full-image span {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 24px;
+        }
+    </style>
+    <script>
+        function showFullImage(src) {
+            var fullImageDiv = document.getElementById('full-image');
+            fullImageDiv.innerHTML = '<span onclick="hideFullImage()">&times;</span><img src="' + src + '">';
+            fullImageDiv.style.display = 'block';
+        }
+
+        function hideFullImage() {
+            var fullImageDiv = document.getElementById('full-image');
+            fullImageDiv.style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <button onclick="window.location.href='/'">Welcome to the Forum</button>
+    <h1>{{.Post.Title}}</h1>
+    <p><strong>{{.Post.Username}}</strong> posted at {{.Post.Timestamp}}:</p>
+    <p>{{.Post.Content}}</p>
+    <div class="image-container">
+        {{if .Post.ImagePaths}}
+            {{range .Post.ImagePaths}}
+                <img src="/{{.}}" onclick="showFullImage(this.src)">
+            {{end}}
+        {{end}}
+    </div>
+
+    <div id="full-image" class="full-image"></div>
+
+    <h2>Comments</h2>
+    {{range .Comments}}
+        <div>
+            <p><strong>{{.Username}}</strong> commented at {{.Timestamp}}:</p>
+            <p>{{.Content}}</p>
+            <p>Score: {{.Score}}</p>
+            <div class="image-container">
+                {{if .ImagePaths}}
+                    {{range .ImagePaths}}
+                        <img src="/{{.}}" onclick="showFullImage(this.src)">
+                    {{end}}
+                {{end}}
+            </div>
+            <form action="/like/comment" method="post">
+                <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                <input type="hidden" name="user_id" value="{{$.Post.UserID}}">
+                <input type="hidden" name="post_id" value="{{$.Post.PostID}}">
+                <button type="submit" name="type" value="like">Like</button>
+                <button type="submit" name="type" value="dislike">Dislike</button>
+            </form>
+        </div>
+        <hr>
+    {{else}}
+        <p>No comments available.</p>
+    {{end}}
+    
+    <h2>Add a Comment</h2>
+<form action="/create/comment" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="post_id" value="{{.Post.PostID}}">
+    <input type="hidden" name="user_id" value="{{.Post.UserID}}">
+    <textarea name="content" required></textarea>
+    <br>
+    <label for="images">Images:</label>
+    <input type="file" id="images" name="images" accept="image/*" multiple onchange="previewImages(event)">
+    <br>
+    <div id="image-previews" class="preview-container"></div>
+    <br>
+    <button type="submit">Add Comment</button>
+</form>
+
+<script>
+    function previewImages(event) {
+        const files = event.target.files;
+        const previewContainer = document.getElementById('image-previews');
+        previewContainer.innerHTML = '';
+
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                previewContainer.appendChild(img);
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+</body>
+</html>
