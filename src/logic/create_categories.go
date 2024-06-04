@@ -14,7 +14,7 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 		name := r.FormValue("name")
 		description := r.FormValue("description")
 
-		db, _ := sql.Open("sqlite3", "./Forum3.db")
+		db, _ := sql.Open("sqlite3", "./database.db")
 		defer db.Close()
 
 		_, err := db.Exec("INSERT INTO Categories (name, description) VALUES (?, ?)", name, description)

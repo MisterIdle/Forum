@@ -9,7 +9,7 @@ import (
 )
 
 func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
-	db, _ := sql.Open("sqlite3", "./Forum3.db")
+	db, _ := sql.Open("sqlite3", "./database.db")
 	defer db.Close()
 
 	//category
@@ -84,7 +84,7 @@ func WelcomeHandler(w http.ResponseWriter, r *http.Request) {
 		return posts[i].PopularityScore > posts[j].PopularityScore
 	})
 
-	tmpl, _ := template.ParseFiles("templates/welcome.html")
+	tmpl, _ := template.ParseFiles("templates/index.html")
 	tmpl.Execute(w, WelcomeData{
 		Categories:      categories,
 		Posts:           posts,

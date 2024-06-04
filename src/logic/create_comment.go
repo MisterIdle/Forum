@@ -40,7 +40,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 			imagePaths = append(imagePaths, imagePath)
 		}
 
-		db, _ := sql.Open("sqlite3", "./Forum3.db")
+		db, _ := sql.Open("sqlite3", "./database.db")
 		defer db.Close()
 
 		_, err := db.Exec("INSERT INTO Comments (post_id, user_id, content, image_paths, score, timestamp) VALUES (?, ?, ?, ?, 0, CURRENT_TIMESTAMP)", postID, userID, content, strings.Join(imagePaths, ","))

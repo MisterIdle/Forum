@@ -9,7 +9,7 @@ import (
 func Search(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query().Get("query")
 
-	db, _ := sql.Open("sqlite3", "./Forum3.db")
+	db, _ := sql.Open("sqlite3", "./database.db")
 	defer db.Close()
 
 	var results SearchResult

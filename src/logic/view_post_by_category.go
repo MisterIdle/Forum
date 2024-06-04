@@ -10,7 +10,7 @@ import (
 func ViewCategoryPostsHandler(w http.ResponseWriter, r *http.Request) {
 	categoryID := r.URL.Query().Get("id")
 
-	db, _ := sql.Open("sqlite3", "./Forum3.db")
+	db, _ := sql.Open("sqlite3", "./database.db")
 	defer db.Close()
 
 	rows, err := db.Query(`

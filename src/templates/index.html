@@ -68,15 +68,6 @@
         }
     </style>
     <script>
-        function validatePostForm() {
-            const categorySelect = document.getElementById('category_id');
-            if (categorySelect.value === '') {
-                alert('Please select a category');
-                return false;
-            }
-            return true;
-        }
-
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');

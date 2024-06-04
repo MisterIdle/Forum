@@ -10,7 +10,7 @@ import (
 func ViewPostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.URL.Query().Get("id")
 
-	db, _ := sql.Open("sqlite3", "./Forum3.db")
+	db, _ := sql.Open("sqlite3", "./database.db")
 	defer db.Close()
 
 	var post Post

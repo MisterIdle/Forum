@@ -49,11 +49,13 @@ type PostPreview struct {
 }
 
 type PostFormData struct {
-	CategoryID int
-	UserID     int
-	Title      string
-	Content    string
-	Error      string
+    CategoryID  int
+    UserID      int
+    Title       string
+    Content     string
+    ImagePaths  []string
+    Error       string
+    Categories  []Category
 }
 
 type CategoryPostsData struct {
