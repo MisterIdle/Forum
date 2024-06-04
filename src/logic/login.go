@@ -429,13 +429,10 @@ func createSession(w http.ResponseWriter, identifier string) {
 	expiresAt := time.Now().Add(120 * time.Second)
 
 	// BUG ICI A FIX AU PLUS VITE !!
-	uuid, date, rank_id, picture := getUserData(identifier)
+	//uuid, date, rank_id, picture := getUserData(identifier)
 
 	sessions[sessionToken] = Session{
-		UUID:       uuid,
-		Date:       date,
-		Rank:       rank_id,
-		Picture:    picture,
+		Username:   identifier,
 		IsLoggedIn: true,
 		expiry:     expiresAt,
 	}
