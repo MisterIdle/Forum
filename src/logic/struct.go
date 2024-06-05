@@ -64,18 +64,28 @@ type CategoryPostsData struct {
 }
 
 type SearchResult struct {
-	Posts []PostResult `json:"posts"`
-	Users []UserResult `json:"users"`
+	Posts []PostResult
+	Users []UserResult
 }
 
 type PostResult struct {
-	PostID       int    `json:"post_id"`
-	Title        string `json:"title"`
-	CategoryName string `json:"category_name"`
-	UniqueUsers  int    `json:"unique_users"`
+	PostID       int
+	Title        string
+	CategoryName string
+	UniqueUsers  int
 }
 
 type UserResult struct {
-	UserID   int    `json:"user_id"`
-	Username string `json:"username"`
+	UserID   int
+	Username string
+}
+type PageData struct {
+	PostCount       int
+	CommentCount    int
+	UniqueUserCount int
+	LatestMember    string
+	Categories      []Category
+	Posts           []Post
+	SearchResults   SearchResult
+	Query           string
 }

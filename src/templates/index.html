@@ -68,6 +68,42 @@
         }
     </style>
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const searchResults = document.getElementById('search-results');
+            if (searchResults.textContent.trim() !== '') {
+                const resultsContainer = document.getElementById('search-suggestions');
+                const results = JSON.parse(searchResults.textContent);
+
+                if (results.Posts.length > 0) {
+                    const postSection = document.createElement('div');
+                    postSection.innerHTML = '<strong>Posts:</strong>';
+                    resultsContainer.appendChild(postSection);
+                    results.Posts.forEach(post => {
+                        const div = document.createElement('div');
+                        div.classList.add('post-result');
+                        div.innerHTML = `<strong>${post.Title}</strong><br>
+                                         <small>Category: ${post.CategoryName}</small><br>
+                                         <small>Unique Commenters: ${post.UniqueUsers}</small>`;
+                        div.onclick = () => window.location.href = '/post?id=' + post.PostID;
+                        resultsContainer.appendChild(div);
+                    });
+                }
+
+                if (results.Users.length > 0) {
+                    const userSection = document.createElement('div');
+                    userSection.innerHTML = '<strong>Community:</strong>';
+                    resultsContainer.appendChild(userSection);
+                    results.Users.forEach(user => {
+                        const div = document.createElement('div');
+                        div.classList.add('user-result');
+                        div.textContent = user.Username;
+                        div.onclick = () => window.location.href = '/user?id=' + user.UserID;
+                        resultsContainer.appendChild(div);
+                    });
+                }
+            }
+        });
+
         function previewImages(event) {
             const files = event.target.files;
             const previewContainer = document.getElementById('image-previews');
@@ -122,8 +158,12 @@
 </head>
 <body>
     <div class="search-container">
-        <input type="text" id="search-input" placeholder="Search posts or users" oninput="searchPosts(this.value)">
+        <form action="/search" method="GET">
+            <input type="text" name="q" placeholder="Search posts or users" value="{{.Query}}">
+            <button type="submit">Search</button>
+        </form>
         <div id="search-suggestions" class="search-results"></div>
+        <div id="search-results" class="hidden">{{.SearchResults}}</div>
     </div>
     <h1>Welcome to the Forum</h1>
     <div class="stats-container">
@@ -144,7 +184,7 @@
     
     <div class="container">
         <h2>Create a Post</h2>
-        <form action="/create/post" method="post" enctype="multipart/form-data" onsubmit="return validatePostForm()">
+        <form action="/create/post" method="post" enctype="multipart/form-data">
             <label for="title">Title:</label>
             <input type="text" id="title" name="title" required>
             <br>
@@ -160,7 +200,7 @@
             </select>
             <br>
             <label for="images">Images:</label>
-            <input type="file" id="images" name="images" accept="image/*" multiple onchange="previewImages(event)">
+            <input type="file" id="images" name="images" accept="image/*" multiple>
             <br>
             <div id="image-previews" class="preview-container"></div>
             <br>

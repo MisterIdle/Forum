@@ -41,6 +41,7 @@ func HandleAll() {
 	http.HandleFunc("/create/post", CreatePostHandler)
 	http.HandleFunc("/create/comment", CreateCommentHandler)
 	http.HandleFunc("/post", ViewPostHandler)
+	http.HandleFunc("/search", SearchHandler)
 
 
 }
