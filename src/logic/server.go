@@ -20,11 +20,17 @@ func HandleAll() {
 	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("styles"))))
 	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("javascript"))))
 
-	http.HandleFunc("/", WelcomeHandler)
+	http.HandleFunc("/", IndexHandler)
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 	http.HandleFunc("/forgot", ForgotHandler)
 	http.HandleFunc("/reset", ResetHandler)
+
+	http.HandleFunc("/categories/", CategoriesHandler)
+	http.HandleFunc("/create-post", CreatePostHandler)
+
+	http.HandleFunc("/categories/post/", PostsHandler)
+	http.HandleFunc("/create-comment", CreateCommentHandler)
 
 	http.HandleFunc("/login/github/", githubLoginHandler)
 	http.HandleFunc("/login/github/callback", githubCallbackHandler)
@@ -34,47 +40,23 @@ func HandleAll() {
 
 	http.HandleFunc("/logout", LogoutHandler)
 
-	http.HandleFunc("/view/categories", ViewCategoryHandler)
-	http.HandleFunc("/view/category", ViewCategoryPostsHandler)
-
-	http.HandleFunc("/create/category", CreateCategoryHandler)
-	http.HandleFunc("/create/post", CreatePostHandler)
-	http.HandleFunc("/create/comment", CreateCommentHandler)
-	http.HandleFunc("/post", ViewPostHandler)
-	http.HandleFunc("/search", SearchHandler)
-
-
 }
-/*
-func getActualSession(r *http.Request) Session {
-	c, err := r.Cookie("session_token")
+
+func IndexHandler(w http.ResponseWriter, r *http.Request) {
+	categories, err := fetchCategories()
 	if err != nil {
-		if err == http.ErrNoCookie {
-			return Session{}
-		}
-		return Session{}
+		http.Error(w, "Error retrieving categories", http.StatusInternalServerError)
+		return
 	}
 
-	sessionToken := c.Value
-	userSession, ok := sessions[sessionToken]
-	if !ok {
-		return Session{}
+	data := struct {
+		Categories map[string][]Category
+	}{
+		Categories: categories,
 	}
 
-	return userSession
+	RenderTemplateGlobal(w, "templates/index.html", data)
 }
-
-func HomeHandler(w http.ResponseWriter, r *http.Request) {
-
-	userSession := getActualSession(r)
-
-	if userSession.Username == "" {
-		userSession.Username = "Guest"
-		userSession.IsLoggedIn = false
-	}
-
-	RenderTemplateGlobal(w, "templates/index.html", userSession)
-}*/
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if isUserLoggedIn(r) {
