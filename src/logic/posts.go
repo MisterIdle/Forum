@@ -6,19 +6,6 @@ import (
 	"strconv"
 )
 
-type Post struct {
-	PostID    int
-	Title     string
-	Content   string
-	Timestamp string
-}
-
-type Comment struct {
-	CommentID int
-	Content   string
-	Timestamp string
-}
-
 func PostsHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 
@@ -34,13 +21,7 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		PostID    int
-		Title     string
-		Content   string
-		Timestamp string
-		Comments  []Comment
-	}{
+	data := Posts{
 		PostID:    id,
 		Title:     post.Title,
 		Content:   post.Content,
@@ -48,7 +29,7 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		Comments:  getCommentsByPostID(id),
 	}
 
-	RenderTemplateGlobal(w, "templates/posts.html", data)
+	RenderTemplateGlobal(w, r, "templates/posts.html", data)
 }
 
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {

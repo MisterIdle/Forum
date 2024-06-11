@@ -285,7 +285,7 @@ func getCategoryName(categoryID int) string {
 	return name
 }
 
-func getPostsByCategoryID(categoryID int) []Post {
+func getPostsByCategoryID(categoryID int) []Posts {
 	query := `SELECT post_id, title, content, timestamp FROM Posts WHERE category_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, categoryID)
 	if err != nil {
@@ -294,9 +294,9 @@ func getPostsByCategoryID(categoryID int) []Post {
 	}
 	defer rows.Close()
 
-	var posts []Post
+	var posts []Posts
 	for rows.Next() {
-		var post Post
+		var post Posts
 		if err := rows.Scan(&post.PostID, &post.Title, &post.Content, &post.Timestamp); err != nil {
 			fmt.Println(err)
 			return nil
@@ -325,14 +325,14 @@ func newPost(categoryID int, title, content string) (int, error) {
 
 // Post
 
-func fetchPostByID(postID int) (Post, error) {
+func fetchPostByID(postID int) (Posts, error) {
 	query := `SELECT title, content, timestamp FROM Posts WHERE post_id = ?;`
 	row := db.QueryRow(query, postID)
-	var post Post
+	var post Posts
 	err := row.Scan(&post.Title, &post.Content, &post.Timestamp)
 	if err != nil {
 		fmt.Println(err)
-		return Post{}, err
+		return Posts{}, err
 	}
 	return post, nil
 }

@@ -20,26 +20,40 @@ func HandleAll() {
 	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("styles"))))
 	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("javascript"))))
 
-	http.HandleFunc("/", IndexHandler)
+	http.HandleFunc("/", IsAuth(IndexHandler))
+	http.HandleFunc("/categories/", IsAuth(CategoriesHandler))
+	http.HandleFunc("/categories/post/", IsAuth(PostsHandler))
+
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
-	http.HandleFunc("/forgot", ForgotHandler)
-	http.HandleFunc("/reset", ResetHandler)
 
-	http.HandleFunc("/categories/", CategoriesHandler)
 	http.HandleFunc("/create-post", CreatePostHandler)
-
-	http.HandleFunc("/categories/post/", PostsHandler)
 	http.HandleFunc("/create-comment", CreateCommentHandler)
 
-	http.HandleFunc("/login/github/", githubLoginHandler)
-	http.HandleFunc("/login/github/callback", githubCallbackHandler)
-
-	http.HandleFunc("/login/google/", googleLoginHandler)
-	http.HandleFunc("/login/google/callback", googleCallbackHandler)
-
 	http.HandleFunc("/logout", LogoutHandler)
+}
 
+func IsAuth(hander http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if !checkCookie(r) {
+			fmt.Println("User is not logged in")
+
+			sessionToken := time.Now().Format("2006-01-02 15:04:05")
+
+			sessions[sessionToken] = Session{
+				LoggedIn: false,
+			}
+
+			http.SetCookie(w, &http.Cookie{
+				Name:  "session_token",
+				Value: sessionToken,
+			})
+
+			fmt.Println("Session created: ", sessionToken)
+		}
+
+		hander(w, r)
+	}
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
@@ -49,13 +63,11 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		Categories map[string][]Category
-	}{
+	data := Categories{
 		Categories: categories,
 	}
 
-	RenderTemplateGlobal(w, "templates/index.html", data)
+	RenderTemplateGlobal(w, r, "templates/index.html", data)
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,34 +93,6 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Login(w, r)
 		return
 	}
-	RenderTemplateWithoutData(w, "templates/register.html")
-}
-
-func ForgotHandler(w http.ResponseWriter, r *http.Request) {
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		Forgot(w, r)
-		return
-	}
-
-	RenderTemplateWithoutData(w, "templates/register.html")
-}
-
-func ResetHandler(w http.ResponseWriter, r *http.Request) {
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
-	if r.Method == http.MethodPost {
-		Reset(w, r)
-		return
-	}
-
 	RenderTemplateWithoutData(w, "templates/register.html")
 }
 

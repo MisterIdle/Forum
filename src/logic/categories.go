@@ -7,12 +7,6 @@ import (
 	"strings"
 )
 
-type Category struct {
-	CategoryID int
-	Name       string
-	Global     string
-}
-
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
 
@@ -25,17 +19,13 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	posts := getPostsByCategoryID(id)
 	categoryName := getCategoryName(id)
 
-	data := struct {
-		CategoryID   int
-		CategoryName string
-		Posts        []Post
-	}{
-		CategoryID:   id,
-		CategoryName: categoryName,
-		Posts:        posts,
+	data := Category{
+		CategoryID: id,
+		Name:       categoryName,
+		Posts:      posts,
 	}
 
-	RenderTemplateGlobal(w, "templates/categories.html", data)
+	RenderTemplateGlobal(w, r, "templates/categories.html", data)
 }
 
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {

@@ -6,19 +6,23 @@
     <title>Categories</title>
 </head>
 <body>
-    <h1>{{.CategoryName}} + {{.CategoryID}}</h1>
+    <h1>{{.Data.Name}} + {{.Data.CategoryID}}</h1>
 
-    <div class="create-post-container">
-        <form action="/create-post" method="POST">
-            <input type="hidden" name="category_id" value="{{.CategoryID}}">
-            <input type="text" name="title" placeholder="Title">
-            <textarea name="content" placeholder="Content"></textarea>
-            <button type="submit">Create Post</button>
-        </form>
-    </div>
+    {{if .LoggedIn}}
+        <div class="create-post-container">
+            <form action="/create-post" method="POST">
+                <input type="hidden" name="category_id" value="{{.Data.CategoryID}}">
+                <input type="text" name="title" placeholder="Title">
+                <textarea name="content" placeholder="Content"></textarea>
+                <button type="submit">Create Post</button>
+            </form>
+        </div>
+    {{else}}
+        <a href="/login">Login to create a post</a>
+    {{end}}
 
     <div class="posts-container">
-        {{range .Posts}}
+        {{range .Data.Posts}}
             <div class="post">
                 <button class="post-title" onclick="window.location.href='/categories/post?name={{.Title}}&id={{.PostID}}'">{{.Title}}</button>
                 <p>{{.Content}}</p>

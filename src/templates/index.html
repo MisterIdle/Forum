@@ -6,9 +6,16 @@
     <title>Bienvenue</title>
 </head>
 <body>
+
+    {{if .LoggedIn}}
+        <a href="/logout">Logout</a>
+    {{else}}
+        <a href="/login">Login</a>
+    {{end}}
+
     <div class="categories-container">
         <h2>Categories</h2>
-        {{range $global, $categories := .Categories}}
+        {{range $global, $categories := .Data.Categories}}
             <h3>{{ $global }}</h3>
             {{range $categories}}
                 <button class="category-button" onclick="window.location.href='/categories?id={{.CategoryID}}'">{{.Name}}</button>

@@ -6,14 +6,19 @@ import (
 	"text/template"
 )
 
-func RenderTemplateGlobal(w http.ResponseWriter, tmpl string, data interface{}) {
+func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, data interface{}) {
 	tmpt, err := template.ParseFiles(tmpl)
 	if err != nil {
 		fmt.Print("Error parsing template: ", err)
 		return
 	}
 
-	err = tmpt.Execute(w, data)
+	dataWithSession := Data{
+		Data:     data,
+		LoggedIn: isUserLoggedIn(r),
+	}
+
+	err = tmpt.Execute(w, dataWithSession)
 	if err != nil {
 		fmt.Print("Error executing template: ", err)
 		return

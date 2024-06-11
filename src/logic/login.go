@@ -1,14 +1,8 @@
 package logic
 
 import (
-	"bytes"
-	"encoding/json"
-	"fmt"
-	"io"
 	"log"
-	"math/rand"
 	"net/http"
-	"net/smtp"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -27,27 +21,7 @@ const (
 	SMTP_PORT            = "587"
 )
 
-type ErrorMessage struct {
-	Message string
-}
-
-type Session struct {
-	Username   string
-	UUID       string
-	Date       string
-	Rank       int
-	Picture    string
-	IsLoggedIn bool
-	expiry     time.Time
-}
-
-type Credentials struct {
-	Username string
-}
-
-////////////////////////
-// USER AUTH LOGIC /////
-////////////////////////
+// Basic Auth logic
 
 func Register(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
@@ -55,21 +29,19 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirm")
 
-	data := ErrorMessage{
-		Message: "",
-	}
+	data := ErrorMessage{Error: ""}
 
 	if password != confirmPassword {
-		data.Message = "Passwords do not match"
-		RenderTemplateGlobal(w, "templates/register.html", data)
+		data.Error = "Passwords do not match"
+		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}
 
 	hashedPassword := hashedPassword(password)
 
 	if checkUserMailOrIdentidy(email) {
-		data.Message = "Email already exists"
-		RenderTemplateGlobal(w, "templates/register.html", data)
+		data.Error = "Email already exists"
+		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}
 
@@ -83,66 +55,18 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
 
-	data := ErrorMessage{Message: ""}
+	data := ErrorMessage{Error: ""}
 
 	hashedPassword, username := getCredentialsByUsernameOrEmail(user)
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
-		data.Message = "Invalid password or username/email"
-		RenderTemplateGlobal(w, "templates/register.html", data)
+		data.Error = "Invalid password or username/email"
+		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}
 
 	createSession(w, username)
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func Forgot(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
-
-	code := generateRandomCode()
-
-	data := ErrorMessage{
-		Message: "",
-	}
-
-	if !checkUserMailOrIdentidy(email) {
-		data.Message = "Email does not exist"
-		RenderTemplateGlobal(w, "templates/register.html", data)
-		return
-	}
-
-	sendEmail("Password Reset", code, []string{email})
-	setCodeByEmail(email, code)
-
-	http.Redirect(w, r, "/reset", http.StatusSeeOther)
-
-}
-
-func Reset(w http.ResponseWriter, r *http.Request) {
-	code := r.FormValue("code")
-	password := r.FormValue("password")
-	confirmPassword := r.FormValue("confirm")
-
-	data := ErrorMessage{
-		Message: "",
-	}
-
-	if password != confirmPassword {
-		data.Message = "Passwords do not match"
-		RenderTemplateGlobal(w, "templates/register.html", data)
-		return
-	}
-
-	email := getEmailFromCode(code)
-
-	hashedPassword := hashedPassword(password)
-
-	resetPassword(email, hashedPassword)
-	resetCode(email)
-
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
-
 }
 
 func hashedPassword(password string) string {
@@ -153,299 +77,42 @@ func hashedPassword(password string) string {
 	return string(hashedPassword)
 }
 
-func generateRandomCode() string {
-	code := fmt.Sprintf("%d", rand.Intn(999999))
-	return code
-}
-
-func sendEmail(subject string, body string, to []string) {
-	auth := smtp.PlainAuth(
-		"",
-		FORGOT_EMAIL,
-		FORGOT_PASSWORD,
-		SMTP_ADDRESS,
-	)
-
-	msg := "From: " + FORGOT_EMAIL + "\n" + "Subject: " + subject + "\n" + body
-
-	err := smtp.SendMail(
-		SMTP_ADDRESS+":"+SMTP_PORT,
-		auth,
-		FORGOT_EMAIL,
-		to,
-		[]byte(msg),
-	)
-
-	if err != nil {
-		log.Panic("Email failed to send")
-	}
-
-	log.Print("Email sent")
-}
+// Session logic
 
 func isUserLoggedIn(r *http.Request) bool {
-	c, err := r.Cookie("session_token")
-	if err != nil || err == http.ErrNoCookie {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
 		return false
 	}
 
-	sessionToken := c.Value
-	_, exists := sessions[sessionToken]
-	return exists
-}
-
-////////////////////////
-// GITHUB LOGIC ////////
-////////////////////////
-
-func getGithubClientID() string {
-	return GITHUB_CLIENT_ID
-}
-
-func getGithubClientSecret() string {
-	return GITHUB_CLIENT_SECRET
-}
-
-func githubCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-
-	githubAccessToken := getGithubAccessToken(code)
-
-	githubData := getGithubData(githubAccessToken)
-
-	var githubUser struct {
-		Name      string `json:"login"`
-		ID        int    `json:"id"`
-		AvatarURL string `json:"avatar_url"`
+	session, ok := sessions[cookie.Value]
+	if !ok {
+		return false
 	}
 
-	err := json.Unmarshal([]byte(githubData), &githubUser)
+	return session.LoggedIn
+}
+
+func checkCookie(r *http.Request) bool {
+	cookie, err := r.Cookie("session_token")
 	if err != nil {
-		log.Panicf("Failed to parse Github user data: %v", err) // Include error details
+		return false
 	}
 
-	if checkUserMailOrIdentidy(fmt.Sprint(githubUser.ID)) {
-		fmt.Println("Welcome Back: " + githubUser.Name)
-	} else {
-		newUser(githubUser.Name, "GITHUB", "GITHUB", fmt.Sprint(githubUser.ID), githubUser.AvatarURL)
-	}
-
-	createSession(w, githubUser.Name)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	_, ok := sessions[cookie.Value]
+	return ok
 }
 
-func getGithubAccessToken(code string) string {
-	clientID := getGithubClientID()
-	clientSecret := getGithubClientSecret()
-
-	requestBodyMap := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"code":          code,
-	}
-	requestJSON, _ := json.Marshal(requestBodyMap)
-
-	req, reqerr := http.NewRequest(
-		"POST",
-		"https://github.com/login/oauth/access_token",
-		bytes.NewBuffer(requestJSON),
-	)
-	if reqerr != nil {
-		log.Panic("Request creation failed")
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "application/json")
-
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
-	}
-
-	respbody, _ := io.ReadAll(resp.Body)
-
-	type githubAccessTokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		Scope       string `json:"scope"`
-	}
-
-	var ghresp githubAccessTokenResponse
-	json.Unmarshal(respbody, &ghresp)
-
-	return ghresp.AccessToken
-}
-
-func getGithubData(accessToken string) string {
-	req, reqerr := http.NewRequest(
-		"GET",
-		"https://api.github.com/user",
-		nil,
-	)
-	if reqerr != nil {
-		log.Panic("API Request creation failed")
-	}
-
-	authorizationHeaderValue := fmt.Sprintf("token %s", accessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
-
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
-	}
-	respbody, _ := io.ReadAll(resp.Body)
-
-	return string(respbody)
-}
-
-func githubLoginHandler(w http.ResponseWriter, r *http.Request) {
-	githubClientID := getGithubClientID()
-
-	redirectURL := fmt.Sprintf(
-		"https://github.com/login/oauth/authorize?client_id=%s&redirect_uri=%s",
-		githubClientID,
-		"http://localhost:3030/login/github/callback",
-	)
-
-	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
-}
-
-////////////////////////
-// GOOGLE LOGIC ////////
-////////////////////////
-
-func getGoogleClientID() string {
-	return GOOGLE_CLIENT_ID
-}
-
-func getGoogleClientSecret() string {
-	return GOOGLE_CLIENT_SECRET
-}
-
-func googleLoginHandler(w http.ResponseWriter, r *http.Request) {
-	googleClientID := getGoogleClientID()
-	redirectURL := fmt.Sprintf(
-		"https://accounts.google.com/o/oauth2/auth?client_id=%s&redirect_uri=%s&response_type=code&scope=https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email&state=pseudo-random",
-		googleClientID,
-		"http://localhost:3030/login/google/callback",
-	)
-	http.Redirect(w, r, redirectURL, http.StatusSeeOther)
-}
-
-func googleCallbackHandler(w http.ResponseWriter, r *http.Request) {
-	code := r.URL.Query().Get("code")
-
-	googleAccessToken := getGoogleAccessToken(code)
-	googleUserData := getGoogleUserData(googleAccessToken)
-
-	var googleUser struct {
-		Name      string `json:"name"`
-		ID        string `json:"id"`
-		AvatarURL string `json:"picture"`
-	}
-
-	err := json.Unmarshal([]byte(googleUserData), &googleUser)
-	if err != nil {
-		log.Panic("Failed to parse Google user data")
-	}
-
-	if checkUserMailOrIdentidy(googleUser.ID) {
-		fmt.Println("Welcome Back: " + googleUser.Name)
-	} else {
-		newUser(googleUser.Name, "GOOGLE", "GOOGLE", googleUser.ID, googleUser.AvatarURL)
-	}
-
-	createSession(w, googleUser.Name)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func getGoogleAccessToken(code string) string {
-	clientID := getGoogleClientID()
-	clientSecret := getGoogleClientSecret()
-
-	requestBodyMap := map[string]string{
-		"client_id":     clientID,
-		"client_secret": clientSecret,
-		"redirect_uri":  "http://localhost:3030/login/google/callback",
-		"grant_type":    "authorization_code",
-		"code":          code,
-	}
-	requestJSON, _ := json.Marshal(requestBodyMap)
-
-	req, reqerr := http.NewRequest(
-		"POST",
-		"https://oauth2.googleapis.com/token",
-		bytes.NewBuffer(requestJSON),
-	)
-	if reqerr != nil {
-		log.Panic("Request creation failed")
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
-	}
-
-	respbody, _ := io.ReadAll(resp.Body)
-
-	type googleAccessTokenResponse struct {
-		AccessToken string `json:"access_token"`
-		TokenType   string `json:"token_type"`
-		ExpiresIn   int    `json:"expires_in"`
-	}
-
-	var gresp googleAccessTokenResponse
-	json.Unmarshal(respbody, &gresp)
-
-	return gresp.AccessToken
-}
-
-func getGoogleUserData(accessToken string) string {
-	req, reqerr := http.NewRequest(
-		"GET",
-		"https://www.googleapis.com/oauth2/v2/userinfo",
-		nil,
-	)
-	if reqerr != nil {
-		log.Panic("API Request creation failed")
-	}
-
-	authorizationHeaderValue := fmt.Sprintf("Bearer %s", accessToken)
-	req.Header.Set("Authorization", authorizationHeaderValue)
-
-	resp, resperr := http.DefaultClient.Do(req)
-	if resperr != nil {
-		log.Panic("Request failed")
-	}
-	respbody, _ := io.ReadAll(resp.Body)
-
-	return string(respbody)
-}
-
-func createSession(w http.ResponseWriter, identifier string) {
+func createSession(w http.ResponseWriter, username string) {
 	sessionToken := time.Now().Format("2006-01-02 15:04:05")
-	expiresAt := time.Now().Add(120 * time.Second)
-
-	// BUG ICI A FIX AU PLUS VITE !!
-	//uuid, date, rank_id, picture := getUserData(identifier)
 
 	sessions[sessionToken] = Session{
-		Username:   identifier,
-		IsLoggedIn: true,
-		expiry:     expiresAt,
+		LoggedIn: true,
+		Username: username,
 	}
 
-	cookie := http.Cookie{
-		Name:     "session_token",
-		Value:    sessionToken,
-		Expires:  expiresAt,
-		Path:     "/",
-		SameSite: http.SameSiteLaxMode,
-		Secure:   true,
-		HttpOnly: true,
-	}
-
-	http.SetCookie(w, &cookie)
+	http.SetCookie(w, &http.Cookie{
+		Name:  "session_token",
+		Value: sessionToken,
+	})
 }
