@@ -27,6 +27,13 @@ func InitData() {
 	if *force {
 		os.Remove("./database.db")
 		createData()
+		resetUsers()
+		resetCategories()
+		resetPosts()
+		resetComments()
+		resetLikes()
+		resetDislikes()
+		createBasicCategories()
 	}
 
 	if *reset {
@@ -34,6 +41,8 @@ func InitData() {
 		resetCategories()
 		resetPosts()
 		resetComments()
+		resetLikes()
+		resetDislikes()
 		createBasicCategories()
 
 		fmt.Println("Database reset")
@@ -50,7 +59,8 @@ func createData() {
 	);
 
 	CREATE TABLE IF NOT EXISTS Users (
-		uuid TEXT PRIMARY KEY,
+		user_id INTEGER PRIMARY KEY,
+		uuid TEXT UNIQUE,
 		username VARCHAR,
 		email VARCHAR,
 		password VARCHAR,
@@ -134,6 +144,22 @@ func resetComments() {
 	}
 }
 
+func resetLikes() {
+	query := `DELETE FROM Likes;`
+	_, err := db.Exec(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
+func resetDislikes() {
+	query := `DELETE FROM Dislikes;`
+	_, err := db.Exec(query)
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+
 func checkUserMailOrIdentidy(identifier string) bool {
 	query := `SELECT COALESCE(email, identity) FROM Users WHERE email = ? OR identity = ?;`
 	row := db.QueryRow(query, identifier, identifier)
@@ -149,67 +175,6 @@ func checkUserMailOrIdentidy(identifier string) bool {
 	return true
 }
 
-func getUserInfoByMailOrIdentidy(identifier string) (string, string, int, string) {
-	query := `SELECT uuid, creation, rank_id, picture FROM Users WHERE email = ? OR identity = ?;`
-	row := db.QueryRow(query, identifier, identifier)
-	var uuid, creation, picture string
-	var rank_id int
-	err := row.Scan(&uuid, &creation, &rank_id, &picture)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return "", "", 0, ""
-		}
-		fmt.Println(err)
-		return "", "", 0, ""
-	}
-	return uuid, creation, rank_id, picture
-}
-
-func setCodeByEmail(email, code string) error {
-	query := `UPDATE Users SET code = ? WHERE email = ?;`
-	_, err := db.Exec(query, code, email)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
-}
-
-func getEmailFromCode(code string) string {
-	query := `SELECT email FROM Users WHERE code = ?;`
-	row := db.QueryRow(query, code)
-	var email string
-	err := row.Scan(&email)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return ""
-		}
-		fmt.Println(err)
-		return ""
-	}
-	return email
-}
-
-func resetPassword(email, password string) error {
-	query := `UPDATE Users SET password = ? WHERE email = ?;`
-	_, err := db.Exec(query, password, email)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
-}
-
-func resetCode(email string) error {
-	query := `UPDATE Users SET code = null WHERE email = ?;`
-	_, err := db.Exec(query, email)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	return nil
-}
-
 func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
 	query := `SELECT password, COALESCE(username, email) FROM Users WHERE (username = ? OR email = ?) AND identity = 'LOCAL';`
 	row := db.QueryRow(query, identifier, identifier)
@@ -223,6 +188,33 @@ func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
 		return "", ""
 	}
 	return password, username
+}
+
+func getIDByUUID(uuid string) int {
+	query := `SELECT user_id FROM Users WHERE uuid = ?;`
+	row := db.QueryRow(query, uuid)
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+
+	fmt.Println(id)
+
+	return id
+}
+
+func getUUIDByUsername(username string) string {
+	query := `SELECT uuid FROM Users WHERE username = ?;`
+	row := db.QueryRow(query, username)
+	var uuid string
+	err := row.Scan(&uuid)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return uuid
 }
 
 func newUser(username, email, password, identity, picture string) error {

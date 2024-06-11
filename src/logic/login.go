@@ -3,7 +3,6 @@ package logic
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -104,7 +103,8 @@ func checkCookie(r *http.Request) bool {
 }
 
 func createSession(w http.ResponseWriter, username string) {
-	sessionToken := time.Now().Format("2006-01-02 15:04:05")
+
+	sessionToken := getUUIDByUsername(username)
 
 	sessions[sessionToken] = Session{
 		LoggedIn: true,
@@ -118,21 +118,6 @@ func createSession(w http.ResponseWriter, username string) {
 }
 
 func getSessionUUID(r *http.Request) string {
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		return ""
-	}
-
-	session, ok := sessions[cookie.Value]
-	if !ok {
-		return ""
-	}
-
-	return session.UUID
-}
-
-func getIDByUUID(uuid string) int {
-	var id int
-	db.QueryRow("SELECT id FROM users WHERE uuid = ?", uuid).Scan(&id)
-	return id
+	cookie, _ := r.Cookie("session_token")
+	return cookie.Value
 }

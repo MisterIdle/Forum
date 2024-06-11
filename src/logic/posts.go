@@ -46,6 +46,8 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID := getIDByUUID(getSessionUUID(r))
 
+	fmt.Println(userID)
+
 	if hasUserDislikedPost(id, userID) {
 		removeDislike(id, userID)
 	}
