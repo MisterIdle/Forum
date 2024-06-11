@@ -76,6 +76,18 @@ func createData() {
 		timestamp DATETIME,
 		category_id INTEGER
 	);
+
+	CREATE TABLE IF NOT EXISTS Likes (
+		like_id INTEGER PRIMARY KEY,
+		post_id INTEGER,
+		user_id INTEGER
+	);
+
+	CREATE TABLE IF NOT EXISTS Dislikes (
+		dislike_id INTEGER PRIMARY KEY,
+		post_id INTEGER,
+		user_id INTEGER
+	);
 	
 	CREATE TABLE IF NOT EXISTS Comments (
 		comment_id INTEGER PRIMARY KEY,
@@ -335,6 +347,94 @@ func fetchPostByID(postID int) (Posts, error) {
 		return Posts{}, err
 	}
 	return post, nil
+}
+
+func getLikesByPostID(postID int) int {
+	query := `SELECT COUNT(*) FROM Likes WHERE post_id = ?;`
+	row := db.QueryRow(query, postID)
+	var likes int
+	err := row.Scan(&likes)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	return likes
+}
+
+func getDislikesByPostID(postID int) int {
+	query := `SELECT COUNT(*) FROM Dislikes WHERE post_id = ?;`
+	row := db.QueryRow(query, postID)
+	var dislikes int
+	err := row.Scan(&dislikes)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	return dislikes
+}
+
+func hasUserLikedPost(postID, userID int) bool {
+	query := `SELECT COUNT(*) FROM Likes WHERE post_id = ? AND user_id = ?;`
+	row := db.QueryRow(query, postID, userID)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return count > 0
+}
+
+func newLike(postID, userID int) error {
+	query := `INSERT INTO Likes (post_id, user_id) VALUES (?, ?);`
+	_, err := db.Exec(query, postID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func hasUserDislikedPost(postID, userID int) bool {
+	query := `SELECT COUNT(*) FROM Dislikes WHERE post_id = ? AND user_id = ?;`
+	row := db.QueryRow(query, postID, userID)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return count > 0
+}
+
+func newDislike(postID, userID int) error {
+	query := `INSERT INTO Dislikes (post_id, user_id) VALUES (?, ?);`
+	_, err := db.Exec(query, postID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func removeDislike(postID, userID int) error {
+	query := `DELETE FROM Dislikes WHERE post_id = ? AND user_id = ?;`
+	_, err := db.Exec(query, postID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func removeLike(postID, userID int) error {
+	query := `DELETE FROM Likes WHERE post_id = ? AND user_id = ?;`
+	_, err := db.Exec(query, postID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
 }
 
 // Comment

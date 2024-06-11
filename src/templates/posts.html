@@ -10,6 +10,22 @@
     <h2>{{.Data.Content}}</h2>
     <p><em>{{.Data.Timestamp}}</em></p>
 
+    <div class="like-dislike-buttons">
+        <form action="/like-post" method="POST">
+            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+            <input type="hidden" name="title" value="{{.Data.Title}}">
+            <h2>{{.Data.Likes}}</h2>
+            <button type="submit">Like</button>
+        </form>
+        <form action="/dislike-post" method="POST">
+            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+            <input type="hidden" name="title" value="{{.Data.Title}}">
+            <h2>{{.Data.Dislikes}}</h2>
+            <button type="submit">Dislike</button>
+        </form>
+    </div>
+
+
     {{if .LoggedIn}}
         <div class="create-comment-container">
             <form action="/create-comment" method="POST">

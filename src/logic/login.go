@@ -116,3 +116,23 @@ func createSession(w http.ResponseWriter, username string) {
 		Value: sessionToken,
 	})
 }
+
+func getSessionUUID(r *http.Request) string {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		return ""
+	}
+
+	session, ok := sessions[cookie.Value]
+	if !ok {
+		return ""
+	}
+
+	return session.UUID
+}
+
+func getIDByUUID(uuid string) int {
+	var id int
+	db.QueryRow("SELECT id FROM users WHERE uuid = ?", uuid).Scan(&id)
+	return id
+}

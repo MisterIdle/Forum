@@ -11,6 +11,8 @@ type Data struct {
 
 type Session struct {
 	Username string
+	ID       int
+	UUID     string
 	LoggedIn bool
 }
 
@@ -30,6 +32,8 @@ type Posts struct {
 	Title     string
 	Content   string
 	Timestamp string
+	Likes     int
+	Dislikes  int
 	Comments  []Comment
 }
 
