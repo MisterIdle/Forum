@@ -39,8 +39,6 @@ func HandleAll() {
 func IsAuth(hander http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !checkCookie(r) {
-			fmt.Println("User is not logged in")
-
 			sessionToken := time.Now().Format("2006-01-02 15:04:05")
 
 			sessions[sessionToken] = Session{
@@ -51,8 +49,6 @@ func IsAuth(hander http.HandlerFunc) http.HandlerFunc {
 				Name:  "session_token",
 				Value: sessionToken,
 			})
-
-			fmt.Println("Session created: ", sessionToken)
 		}
 
 		hander(w, r)

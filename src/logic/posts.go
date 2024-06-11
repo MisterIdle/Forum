@@ -15,7 +15,7 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	post, err := fetchPostByID(id)
+	post, err := fetchCommentsByID(id)
 	if err != nil {
 		http.Error(w, "Error retrieving post", http.StatusInternalServerError)
 		return
@@ -26,6 +26,7 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		Title:     post.Title,
 		Content:   post.Content,
 		Timestamp: post.Timestamp,
+		Username:  getUsernameByPostID(id),
 		Likes:     getLikesByPostID(id),
 		Dislikes:  getDislikesByPostID(id),
 		Comments:  getCommentsByPostID(id),
@@ -86,6 +87,8 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
 }
 
+// Comment
+
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
 	content := r.FormValue("content")
@@ -97,7 +100,7 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newComment(id, content)
+	newComment(id, content, getUsernameByUUID(getSessionUUID(r)))
 
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
 }

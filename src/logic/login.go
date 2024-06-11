@@ -3,22 +3,12 @@ package logic
 import (
 	"log"
 	"net/http"
+	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
 
 var sessions = map[string]Session{}
-
-const (
-	GITHUB_CLIENT_ID     = "Ov23liWELhSqACpxuAnb"
-	GITHUB_CLIENT_SECRET = "a6764689efbf7cb3f02e844ad5c18215a1eedc36"
-	GOOGLE_CLIENT_ID     = "881937808313-8a95bvir63s8ceku4s9f4jmmf6omd3ij.apps.googleusercontent.com"
-	GOOGLE_CLIENT_SECRET = "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"
-	FORGOT_EMAIL         = "noreplyforumtest@gmail.com"
-	FORGOT_PASSWORD      = "lnkqxjttfyrzyoju"
-	SMTP_ADDRESS         = "smtp.gmail.com"
-	SMTP_PORT            = "587"
-)
 
 // Basic Auth logic
 
@@ -38,13 +28,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword := hashedPassword(password)
 
-	if checkUserMailOrIdentidy(email) {
+	if checkUserEmail(email) {
 		data.Error = "Email already exists"
 		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}
 
-	newUser(username, email, string(hashedPassword), "LOCAL", "Default.png")
+	newUser(username, email, string(hashedPassword), "Default.png")
 	createSession(w, username)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -56,10 +46,21 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	data := ErrorMessage{Error: ""}
 
-	hashedPassword, username := getCredentialsByUsernameOrEmail(user)
+	var hashedPassword, username string
+	if strings.Contains(user, "@") {
+		hashedPassword, username = getCredentialsByEmail(user)
+	} else {
+		hashedPassword, username = getCredentialsByUsername(user)
+	}
+
+	if hashedPassword == "" {
+		data.Error = "Invalid username/email"
+		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		return
+	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
-		data.Error = "Invalid password or username/email"
+		data.Error = "Invalid password"
 		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}

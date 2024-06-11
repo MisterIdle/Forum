@@ -9,6 +9,7 @@
     <h1>{{.Data.Title}} + {{.Data.PostID}}</h1>
     <h2>{{.Data.Content}}</h2>
     <p><em>{{.Data.Timestamp}}</em></p>
+    <H2>By {{.Data.Username}}</H2>
 
     <div class="like-dislike-buttons">
         <form action="/like-post" method="POST">
@@ -44,6 +45,7 @@
             <div class="comment">
                 <p>{{.Content}}</p>
                 <p><em>{{.Timestamp}}</em></p>
+                <h2>By {{.Username}}</h2>
             </div>
         {{else}}
             <p>No comment available.</p>

@@ -53,58 +53,59 @@ func InitData() {
 
 func createData() {
 	query := `
-	CREATE TABLE IF NOT EXISTS Ranks (
-		rank_id INTEGER PRIMARY KEY,
-		rank_name VARCHAR
-	);
+    CREATE TABLE IF NOT EXISTS Ranks (
+        rank_id INTEGER PRIMARY KEY,
+        rank_name VARCHAR
+    );
 
-	CREATE TABLE IF NOT EXISTS Users (
-		user_id INTEGER PRIMARY KEY,
-		uuid TEXT UNIQUE,
-		username VARCHAR,
-		email VARCHAR,
-		password VARCHAR,
-		identity TEXT,
-		code TEXT,
-		creation DATETIME,
-		rank_id INTEGER,
-		picture VARCHAR,
-		FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
-	);
+    CREATE TABLE IF NOT EXISTS Users (
+        user_id INTEGER PRIMARY KEY,
+        uuid TEXT UNIQUE,
+        username VARCHAR,
+        email VARCHAR UNIQUE,
+        password VARCHAR,
+        code TEXT,
+        creation DATETIME,
+        rank_id INTEGER,
+        picture VARCHAR,
+        FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
+    );
 
-	CREATE TABLE IF NOT EXISTS Categories (
-		category_id INTEGER PRIMARY KEY,
-		name VARCHAR,
-		description TEXT,
-		global TEXT
-	);
+    CREATE TABLE IF NOT EXISTS Categories (
+        category_id INTEGER PRIMARY KEY,
+        name VARCHAR,
+        description TEXT,
+        global TEXT
+    );
 
-	CREATE TABLE IF NOT EXISTS Posts (
-		post_id INTEGER PRIMARY KEY,
-		title TEXT,
-		content TEXT,
-		timestamp DATETIME,
-		category_id INTEGER
-	);
+    CREATE TABLE IF NOT EXISTS Posts (
+        post_id INTEGER PRIMARY KEY,
+        title TEXT,
+        content TEXT,
+		username TEXT,
+        timestamp DATETIME,
+        category_id INTEGER
+    );
 
-	CREATE TABLE IF NOT EXISTS Likes (
-		like_id INTEGER PRIMARY KEY,
-		post_id INTEGER,
-		user_id INTEGER
-	);
+    CREATE TABLE IF NOT EXISTS Likes (
+        like_id INTEGER PRIMARY KEY,
+        post_id INTEGER,
+        user_id INTEGER
+    );
 
-	CREATE TABLE IF NOT EXISTS Dislikes (
-		dislike_id INTEGER PRIMARY KEY,
-		post_id INTEGER,
-		user_id INTEGER
-	);
-	
-	CREATE TABLE IF NOT EXISTS Comments (
-		comment_id INTEGER PRIMARY KEY,
-		content TEXT,
-		timestamp DATETIME,
-		post_id INTEGER
-	);`
+    CREATE TABLE IF NOT EXISTS Dislikes (
+        dislike_id INTEGER PRIMARY KEY,
+        post_id INTEGER,
+        user_id INTEGER
+    );
+    
+    CREATE TABLE IF NOT EXISTS Comments (
+        comment_id INTEGER PRIMARY KEY,
+        content TEXT,
+        timestamp DATETIME,
+		username TEXT,
+        post_id INTEGER
+    );`
 
 	_, err := db.Exec(query)
 	if err != nil {
@@ -160,9 +161,9 @@ func resetDislikes() {
 	}
 }
 
-func checkUserMailOrIdentidy(identifier string) bool {
-	query := `SELECT COALESCE(email, identity) FROM Users WHERE email = ? OR identity = ?;`
-	row := db.QueryRow(query, identifier, identifier)
+func checkUserEmail(email string) bool {
+	query := `SELECT email FROM Users WHERE email = ?;`
+	row := db.QueryRow(query, email)
 	var result string
 	err := row.Scan(&result)
 	if err != nil {
@@ -175,11 +176,25 @@ func checkUserMailOrIdentidy(identifier string) bool {
 	return true
 }
 
-func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
-	query := `SELECT password, COALESCE(username, email) FROM Users WHERE (username = ? OR email = ?) AND identity = 'LOCAL';`
-	row := db.QueryRow(query, identifier, identifier)
+func getCredentialsByEmail(email string) (string, string) {
+	query := `SELECT password, COALESCE(username, email) FROM Users WHERE email = ?;`
+	row := db.QueryRow(query, email)
 	var password, username string
 	err := row.Scan(&password, &username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return "", ""
+		}
+		return "", ""
+	}
+	return password, username
+}
+
+func getCredentialsByUsername(username string) (string, string) {
+	query := `SELECT password, COALESCE(username, email) FROM Users WHERE username = ?;`
+	row := db.QueryRow(query, username)
+	var password, email string // We're adding email too, as username can be NULL
+	err := row.Scan(&password, &email)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return "", ""
@@ -187,7 +202,7 @@ func getCredentialsByUsernameOrEmail(identifier string) (string, string) {
 		fmt.Println(err)
 		return "", ""
 	}
-	return password, username
+	return password, email
 }
 
 func getIDByUUID(uuid string) int {
@@ -200,9 +215,19 @@ func getIDByUUID(uuid string) int {
 		return 0
 	}
 
-	fmt.Println(id)
-
 	return id
+}
+
+func getUsernameByUUID(uuid string) string {
+	query := `SELECT username FROM Users WHERE uuid = ?;`
+	row := db.QueryRow(query, uuid)
+	var username string
+	err := row.Scan(&username)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return username
 }
 
 func getUUIDByUsername(username string) string {
@@ -217,15 +242,15 @@ func getUUIDByUsername(username string) string {
 	return uuid
 }
 
-func newUser(username, email, password, identity, picture string) error {
+func newUser(username, email, password, picture string) error {
 	uuid, err := uuid.NewV4()
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
 
-	query := `INSERT INTO Users (uuid, username, email, password, identity, code, creation, rank_id, picture) VALUES (?, ?, ?, ?, ?, null, datetime('now'), 1, ?);`
-	_, err = db.Exec(query, uuid.String(), username, email, password, identity, picture)
+	query := `INSERT INTO Users (uuid, username, email, password, code, creation, rank_id, picture) VALUES (?, ?, ?, ?, null, datetime('now'), 1, ?);`
+	_, err = db.Exec(query, uuid.String(), username, email, password, picture)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -290,7 +315,7 @@ func getCategoryName(categoryID int) string {
 }
 
 func getPostsByCategoryID(categoryID int) []Posts {
-	query := `SELECT post_id, title, content, timestamp FROM Posts WHERE category_id = ? ORDER BY timestamp DESC;`
+	query := `SELECT post_id, title, content, timestamp, username FROM Posts WHERE category_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, categoryID)
 	if err != nil {
 		fmt.Println(err)
@@ -301,7 +326,7 @@ func getPostsByCategoryID(categoryID int) []Posts {
 	var posts []Posts
 	for rows.Next() {
 		var post Posts
-		if err := rows.Scan(&post.PostID, &post.Title, &post.Content, &post.Timestamp); err != nil {
+		if err := rows.Scan(&post.PostID, &post.Title, &post.Content, &post.Timestamp, &post.Username); err != nil {
 			fmt.Println(err)
 			return nil
 		}
@@ -310,34 +335,33 @@ func getPostsByCategoryID(categoryID int) []Posts {
 	return posts
 }
 
-func newPost(categoryID int, title, content string) (int, error) {
-	query := `INSERT INTO Posts (title, content, timestamp, category_id) VALUES (?, ?, datetime('now'), ?);`
-	result, err := db.Exec(query, title, content, categoryID)
+func newPost(categoryID int, title, content, username string) (int, error) {
+	query := `INSERT INTO Posts (title, content, timestamp, category_id, username) VALUES (?, ?, datetime('now'), ?, ?);`
+	result, err := db.Exec(query, title, content, categoryID, username)
 	if err != nil {
 		fmt.Println(err)
 		return 0, err
 	}
-
-	postID, err := result.LastInsertId()
+	id, err := result.LastInsertId()
 	if err != nil {
 		fmt.Println(err)
 		return 0, err
 	}
-
-	return int(postID), nil
+	return int(id), nil
 }
 
-// Post
+// Post-
 
-func fetchPostByID(postID int) (Posts, error) {
-	query := `SELECT title, content, timestamp FROM Posts WHERE post_id = ?;`
+func fetchCommentsByID(postID int) (Posts, error) {
+	query := `SELECT title, content, timestamp, username FROM Posts WHERE post_id = ?;`
 	row := db.QueryRow(query, postID)
 	var post Posts
-	err := row.Scan(&post.Title, &post.Content, &post.Timestamp)
+	err := row.Scan(&post.Title, &post.Content, &post.Timestamp, &post.Username)
 	if err != nil {
 		fmt.Println(err)
 		return Posts{}, err
 	}
+
 	return post, nil
 }
 
@@ -363,6 +387,18 @@ func getDislikesByPostID(postID int) int {
 		return 0
 	}
 	return dislikes
+}
+
+func getUsernameByPostID(postID int) string {
+	query := `SELECT username FROM Posts WHERE post_id = ?;`
+	row := db.QueryRow(query, postID)
+	var username string
+	err := row.Scan(&username)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return username
 }
 
 func hasUserLikedPost(postID, userID int) bool {
@@ -432,7 +468,7 @@ func removeLike(postID, userID int) error {
 // Comment
 
 func getCommentsByPostID(postID int) []Comment {
-	query := `SELECT comment_id, content, timestamp FROM Comments WHERE post_id = ? ORDER BY timestamp DESC;`
+	query := `SELECT comment_id, content, timestamp, username FROM Comments WHERE post_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, postID)
 	if err != nil {
 		fmt.Println(err)
@@ -452,9 +488,9 @@ func getCommentsByPostID(postID int) []Comment {
 	return comments
 }
 
-func newComment(postID int, content string) error {
-	query := `INSERT INTO Comments (content, timestamp, post_id) VALUES (?, datetime('now'), ?);`
-	_, err := db.Exec(query, content, postID)
+func newComment(postID int, content, username string) error {
+	query := `INSERT INTO Comments (content, timestamp, username, post_id) VALUES (?, datetime('now'), ?, ?);`
+	_, err := db.Exec(query, content, username, postID)
 	if err != nil {
 		fmt.Println(err)
 		return err

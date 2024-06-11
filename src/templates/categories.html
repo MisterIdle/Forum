@@ -26,6 +26,8 @@
             <div class="post">
                 <button class="post-title" onclick="window.location.href='/categories/post?name={{.Title}}&id={{.PostID}}'">{{.Title}}</button>
                 <p>{{.Content}}</p>
+                <p><em>{{.Timestamp}}</em></p>
+                <h2>By {{.Username}}</h2>
             </div>
         {{else}}
             <p>No post available.</p>

@@ -31,6 +31,7 @@ type Posts struct {
 	PostID    int
 	Title     string
 	Content   string
+	Username  string
 	Timestamp string
 	Likes     int
 	Dislikes  int
@@ -41,4 +42,5 @@ type Comment struct {
 	CommentID int
 	Content   string
 	Timestamp string
+	Username  string
 }

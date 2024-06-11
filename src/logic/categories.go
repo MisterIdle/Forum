@@ -41,7 +41,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	title = strings.Replace(title, " ", "-", -1)
 
-	postID, err := newPost(id, title, content)
+	postID, err := newPost(id, title, content, getUsernameByUUID(getSessionUUID(r)))
 	if err != nil {
 		http.Error(w, "Error creating post", http.StatusInternalServerError)
 		return
