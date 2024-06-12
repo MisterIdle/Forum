@@ -29,8 +29,8 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		Username:  getUsernameByPostID(id),
 		Likes:     getLikesByPostID(id),
 		Dislikes:  getDislikesByPostID(id),
-
-		Comments: getCommentsByPostID(id),
+		Images:    getImagesByPostID(id),
+		Comments:  getCommentsByPostID(id),
 	}
 
 	RenderTemplateGlobal(w, r, "templates/posts.html", data)

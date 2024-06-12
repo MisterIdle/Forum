@@ -93,18 +93,7 @@ func isUserLoggedIn(r *http.Request) bool {
 	return session.LoggedIn
 }
 
-func checkCookie(r *http.Request) bool {
-	cookie, err := r.Cookie("session_token")
-	if err != nil {
-		return false
-	}
-
-	_, ok := sessions[cookie.Value]
-	return ok
-}
-
 func createSession(w http.ResponseWriter, username string) {
-
 	sessionToken := getUUIDByUsername(username)
 
 	sessions[sessionToken] = Session{

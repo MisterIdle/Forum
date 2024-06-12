@@ -21,9 +21,9 @@ func HandleAll() {
 	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("javascript"))))
 	http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("img"))))
 
-	http.HandleFunc("/", IsAuth(IndexHandler))
-	http.HandleFunc("/categories/", IsAuth(CategoriesHandler))
-	http.HandleFunc("/categories/post/", IsAuth(PostsHandler))
+	http.HandleFunc("/", IndexHandler)
+	http.HandleFunc("/categories/", CategoriesHandler)
+	http.HandleFunc("/categories/post/", PostsHandler)
 
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
@@ -38,25 +38,6 @@ func HandleAll() {
 	http.HandleFunc("/dislike-comment", DislikeCommentHandler)
 
 	http.HandleFunc("/logout", LogoutHandler)
-}
-
-func IsAuth(hander http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if !checkCookie(r) {
-			sessionToken := time.Now().Format("2006-01-02 15:04:05")
-
-			sessions[sessionToken] = Session{
-				LoggedIn: false,
-			}
-
-			http.SetCookie(w, &http.Cookie{
-				Name:  "session_token",
-				Value: sessionToken,
-			})
-		}
-
-		hander(w, r)
-	}
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {

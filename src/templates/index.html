@@ -5,32 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenue</title>
 
-    <link rel="stylesheet" href="../styles/header.css">
-    <link rel="stylesheet" href="../styles/categories.css">
+    <link rel="stylesheet" href="../styles/styles.css">
 </head>
 <body>
 
-    <div class="header">
-        <a href="/index.html">
-            <img src="../img/logo.png" alt="logo" class="logo">
-            <h1>Prog'ici</h1>
-        </a>
-    </div>
-
-    <div class="nav">
-        <div class="nav-left">
-            <a href="/index.html">Home</a>
-            <a href="/rules.html">Rules</a>
-            <a href="/about.html">About</a>
-        </div>
-        <div class="nav-right">
-            {{if .LoggedIn}}
-                <a href="/logout">Logout</a>
-            {{else}}
-                <a href="/login">Login</a>
-            {{end}}
-        </div>
-    </div>
+    {{if .LoggedIn}}
+    <section class="login-section">
+        <a href="/logout">Se déconnecter</a>
+    </section>
+    {{else}}
+    <section class="login-section">
+        <a href="/login">Se connecter</a>
+    </section>
+    {{end}}
 
     <div class="categories-container">
         <h2><i class="fas fa-home"></i> Accueil</h2>
@@ -48,10 +35,6 @@
         {{else}}
             <p>No category available.</p>
         {{end}}
-    </div>
-
-    <div class="stats-container">
-        <h2>Stats</h2>
     </div>
     
     <script src="../javascript/script.js"></script>

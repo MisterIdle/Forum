@@ -2,10 +2,14 @@ package logic
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 )
+
+const MaxImageSize = 20 * 1024 * 1024
 
 func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	idStr := r.URL.Query().Get("id")
@@ -46,5 +50,48 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	r.ParseMultipartForm(10 << 20)
+
+	files := r.MultipartForm.File["image"]
+
+	for i, fileHandler := range files {
+		file, err := fileHandler.Open()
+		if err != nil {
+			http.Error(w, "Error uploading file", http.StatusInternalServerError)
+			return
+		}
+		defer file.Close()
+
+		fileSize := fileHandler.Size
+		if fileSize > MaxImageSize {
+			http.Error(w, "Image is too large. Maximum allowed size is 20 MB.", http.StatusBadRequest)
+			return
+		}
+
+		if !isValideType(fileHandler.Header.Get("Content-Type")) {
+			http.Error(w, "Invalid file type", http.StatusBadRequest)
+			return
+		}
+
+		dst, _ := os.Create(fmt.Sprintf("./img/upload/%d_%s", postID, files[i].Filename))
+		defer dst.Close()
+
+		io.Copy(dst, file)
+
+		err = uploadImage(postID, fmt.Sprintf("%d_%s", postID, files[i].Filename))
+		if err != nil {
+			http.Error(w, "Error uploading image", http.StatusInternalServerError)
+			return
+		}
+	}
+
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, postID), http.StatusSeeOther)
+}
+
+func isValideType(fileType string) bool {
+	switch fileType {
+	case "image/png", "image/jpg", "image/jpeg", "image/gif", "image/svg", "image/webp":
+		return true
+	}
+	return false
 }

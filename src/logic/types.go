@@ -37,6 +37,7 @@ type Posts struct {
 	Timestamp string
 	Likes     int
 	Dislikes  int
+	Images    []string
 	Comments  []Comment
 }
 

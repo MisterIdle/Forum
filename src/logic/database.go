@@ -100,7 +100,14 @@ func createData() {
 		comment_id INTEGER,
         user_id INTEGER
     );
-    
+
+	CREATE TABLE IF NOT EXISTS Images (
+	    image_id INTEGER PRIMARY KEY,
+	    post_id INTEGER,
+	    image_name TEXT,
+	    FOREIGN KEY (post_id) REFERENCES Posts(post_id)
+	);
+
     CREATE TABLE IF NOT EXISTS Comments (
         comment_id INTEGER PRIMARY KEY,
         content TEXT,
@@ -588,4 +595,37 @@ func removeLikeComment(commentID, userID int) error {
 		return err
 	}
 	return nil
+}
+
+// Image
+
+func uploadImage(postID int, imageName string) error {
+	query := `INSERT INTO Images (post_id, image_name) VALUES (?, ?);`
+	_, err := db.Exec(query, postID, imageName)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func getImagesByPostID(postID int) []string {
+	query := `SELECT image_name FROM Images WHERE post_id = ?;`
+	rows, err := db.Query(query, postID)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+
+	var images []string
+	for rows.Next() {
+		var image string
+		if err := rows.Scan(&image); err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		images = append(images, image)
+	}
+
+	return images
 }

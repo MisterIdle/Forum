@@ -6,12 +6,17 @@
     <title>{{.Data.Title}}</title>
 </head>
 <body>
-    <h1>{{.Data.Title}} + {{.Data.PostID}}</h1>
-    <h2>{{.Data.Content}}</h2>
-    <p><em>{{.Data.Timestamp}}</em></p>
-    <H2>By {{.Data.Username}}</H2>
+    <header>
+        <h1>{{.Data.Title}}</h1>
+        <h2>{{.Data.Content}}</h2>
+        {{range .Data.Images}}
+        <img src="/img/upload/{{.}}" alt="Image">
+        {{end}}
+        <p><em>{{.Data.Timestamp}}</em></p>
+        <h2>By {{.Data.Username}}</h2>
+    </header>
 
-    <div class="like-dislike-buttons">
+    <section class="like-dislike-section">
         <form action="/like-post" method="POST">
             <input type="hidden" name="post_id" value="{{.Data.PostID}}">
             <input type="hidden" name="title" value="{{.Data.Title}}">
@@ -24,48 +29,51 @@
             <h2>{{.Data.Dislikes}}</h2>
             <button type="submit">Dislike</button>
         </form>
-    </div>
-
+    </section>
 
     {{if .LoggedIn}}
-        <div class="create-comment-container">
-            <form action="/create-comment" method="POST">
-                <textarea name="content" placeholder="Comment"></textarea>
-                <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-                <input type="hidden" name="title" value="{{.Data.Title}}">
-                <button type="submit">Create Comment</button>
-            </form>
-        </div>
+    <section class="create-comment-section">
+        <form action="/create-comment" method="POST">
+            <textarea name="content" placeholder="Comment"></textarea>
+            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+            <input type="hidden" name="title" value="{{.Data.Title}}">
+            <button type="submit">Create Comment</button>
+        </form>
+    </section>
     {{else}}
+    <section class="login-section">
         <a href="/logout">Login to create a comment</a>
+    </section>
     {{end}}
 
-    <div class="comments-container">
+    <section class="comments-section">
         {{range .Data.Comments}}
-            <div class="comment">
-                <p>{{.Content}}</p>
-                <p><em>{{.Timestamp}}</em></p>
-                <h2>By {{.Username}}</h2>
-                <div class="like-dislike-buttons">
-                    <form action="/like-comment" method="POST">
-                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                        <input type="hidden" name="post_id" value="{{.PostID}}">
-                        <input type="hidden" name="title" value="{{.Title}}">
-                        <h2>{{.Likes}}</h2>
-                        <button type="submit">Like</button>
-                    </form>
-                    <form action="/dislike-comment" method="POST">
-                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                        <input type="hidden" name="post_id" value="{{.PostID}}">
-                        <input type="hidden" name="title" value="{{.Title}}">
-                        <h2>{{.Dislikes}}</h2>
-                        <button type="submit">Dislike</button>
-                    </form>
-                </div>
+        <article class="comment">
+            <p>{{.Content}}</p>
+            <p><em>{{.Timestamp}}</em></p>
+            <p>By {{.Username}}</p>
+            {{if .LoggedIn}}
+            <div class="like-dislike-buttons">
+                <form action="/like-comment" method="POST">
+                    <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                    <input type="hidden" name="post_id" value="{{.PostID}}">
+                    <input type="hidden" name="title" value="{{.Title}}">
+                    <h2>{{.Likes}}</h2>
+                    <button type="submit">Like</button>
+                </form>
+                <form action="/dislike-comment" method="POST">
+                    <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                    <input type="hidden" name="post_id" value="{{.PostID}}">
+                    <input type="hidden" name="title" value="{{.Title}}">
+                    <h2>{{.Dislikes}}</h2>
+                    <button type="submit">Dislike</button>
+                </form>
             </div>
-        {{else}}
-            <p>No comment available.</p>
         {{end}}
-    </div>    
+        </article>
+        {{else}}
+        <p>No comments available.</p>
+        {{end}}
+    </section>
 </body>
 </html>

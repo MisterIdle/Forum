@@ -5,50 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration Form</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-F0aK6C9wT9oyMzwVg5F3LBwxrLi/CtRdgfO6lJi7fYyZt3SfD0A2B/AhE6ZYezESR3RzEZDkcrQh5oSl+znfNQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-
+    <style>
+        .hidden { display: none; }
+        .border {
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: 300px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        label, input, a, h1 {
+            margin: 10px 0;
+        }
+        a {
+            color: #007BFF;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
     <div class="border">
         <form id="registerForm" action="/register" method="post">
             <h1>Signup</h1>
-
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required>
-
             <label for="email">Email:</label>
             <input type="email" id="email" name="email" required>
-
             <label for="password">Password:</label>
             <input type="password" id="password" name="password" required>
-
             <label for="confirm">Confirm password:</label>
             <input type="password" id="confirm" name="confirm" required>
-
-            <a type="button" onclick="toggleForm('loginForm')">Already have an account?</a>
-
+            <a onclick="toggleForm('loginForm')">Already have an account?</a>
             <input type="submit" value="Register">
-
             <div style="color: red; margin-top: 15px;">{{.Data.Error}}</div>
         </form>
 
         <form id="loginForm" action="/login" method="post" class="hidden">
             <h1>Login</h1>
-
             <label for="user">Username or Email:</label>
             <input type="text" id="user" name="user" required>
 
             <label for="loginPassword">Password:</label>
             <input type="password" id="loginPassword" name="password" required>
-
-            <a type="button" onclick="toggleForm('registerForm')">Don't have an account?</a>
-
+            <a onclick="toggleForm('registerForm')">Don't have an account?</a>
             <input type="submit" value="Login">
-
             <div style="color: red; margin-top: 15px;">{{.Data.Error}}</div>
         </form>
     </div>
     
-    <script src="../javascript/script.js"></script>
+    <script>
+        function toggleForm(formId) {
+            var registerForm = document.getElementById('registerForm');
+            var loginForm = document.getElementById('loginForm');
+
+            if (formId === 'loginForm') {
+                registerForm.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+        }
+    </script>
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>
