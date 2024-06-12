@@ -19,6 +19,7 @@ func LaunchApp() {
 func HandleAll() {
 	http.Handle("/styles/", http.StripPrefix("/styles/", http.FileServer(http.Dir("styles"))))
 	http.Handle("/javascript/", http.StripPrefix("/javascript/", http.FileServer(http.Dir("javascript"))))
+	http.Handle("/img/", http.StripPrefix("/img/", http.FileServer(http.Dir("img"))))
 
 	http.HandleFunc("/", IsAuth(IndexHandler))
 	http.HandleFunc("/categories/", IsAuth(CategoriesHandler))

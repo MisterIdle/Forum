@@ -16,13 +16,12 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	posts := getPostsByCategoryID(id)
-	categoryName := getCategoryName(id)
-
 	data := Category{
-		CategoryID: id,
-		Name:       categoryName,
-		Posts:      posts,
+		CategoryID:  id,
+		Name:        getCategoryName(id),
+		Description: getCategoryDescription(id),
+		Totals:      getPostTotalsByCategoryID(id),
+		Posts:       getPostsByCategoryID(id),
 	}
 
 	RenderTemplateGlobal(w, r, "templates/categories.html", data)

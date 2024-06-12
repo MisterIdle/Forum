@@ -21,10 +21,12 @@ type Categories struct {
 }
 
 type Category struct {
-	CategoryID int
-	Name       string
-	Global     string
-	Posts      []Posts
+	CategoryID  int
+	Name        string
+	Description string
+	Totals      int
+	Global      string
+	Posts       []Posts
 }
 
 type Posts struct {

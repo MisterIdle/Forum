@@ -284,7 +284,7 @@ func createBasicCategories() {
 }
 
 func fetchCategories() (map[string][]Category, error) {
-	query := `SELECT category_id, name, global FROM Categories;`
+	query := `SELECT category_id, name, description, global, (SELECT COUNT(*) FROM Posts WHERE category_id = c.category_id) AS totals FROM Categories c;`
 	rows, err := db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -294,7 +294,7 @@ func fetchCategories() (map[string][]Category, error) {
 	categories := make(map[string][]Category)
 	for rows.Next() {
 		var category Category
-		if err := rows.Scan(&category.CategoryID, &category.Name, &category.Global); err != nil {
+		if err := rows.Scan(&category.CategoryID, &category.Name, &category.Description, &category.Global, &category.Totals); err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
@@ -314,6 +314,18 @@ func getCategoryName(categoryID int) string {
 		return ""
 	}
 	return name
+}
+
+func getCategoryDescription(categoryID int) string {
+	query := `SELECT description FROM Categories WHERE category_id = ?;`
+	row := db.QueryRow(query, categoryID)
+	var description string
+	err := row.Scan(&description)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return description
 }
 
 // Post
@@ -337,6 +349,19 @@ func getPostsByCategoryID(categoryID int) []Posts {
 		posts = append(posts, post)
 	}
 	return posts
+}
+
+func getPostTotalsByCategoryID(categoryID int) int {
+	query := `SELECT COUNT(*) FROM Posts WHERE category_id = ?;`
+	row := db.QueryRow(query, categoryID)
+	var total int
+	err := row.Scan(&total)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+
+	return total
 }
 
 func newPost(categoryID int, title, content, username string) (int, error) {
