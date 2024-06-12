@@ -30,8 +30,11 @@ func HandleAll() {
 	http.HandleFunc("/create-post", CreatePostHandler)
 	http.HandleFunc("/create-comment", CreateCommentHandler)
 
-	http.HandleFunc("/like-post", LikeHandler)
-	http.HandleFunc("/dislike-post", DislikeHandler)
+	http.HandleFunc("/like-post", LikePostHandler)
+	http.HandleFunc("/dislike-post", DislikePostHandler)
+
+	http.HandleFunc("/like-comment", LikeCommentHandler)
+	http.HandleFunc("/dislike-comment", DislikeCommentHandler)
 
 	http.HandleFunc("/logout", LogoutHandler)
 }

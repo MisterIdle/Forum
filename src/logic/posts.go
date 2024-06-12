@@ -29,13 +29,14 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		Username:  getUsernameByPostID(id),
 		Likes:     getLikesByPostID(id),
 		Dislikes:  getDislikesByPostID(id),
-		Comments:  getCommentsByPostID(id),
+
+		Comments: getCommentsByPostID(id),
 	}
 
 	RenderTemplateGlobal(w, r, "templates/posts.html", data)
 }
 
-func LikeHandler(w http.ResponseWriter, r *http.Request) {
+func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
 	title := r.FormValue("title")
 
@@ -47,22 +48,20 @@ func LikeHandler(w http.ResponseWriter, r *http.Request) {
 
 	userID := getIDByUUID(getSessionUUID(r))
 
-	fmt.Println(userID)
-
 	if hasUserDislikedPost(id, userID) {
-		removeDislike(id, userID)
+		removeDislikePost(id, userID)
 	}
 
 	if !hasUserLikedPost(id, userID) {
-		newLike(id, userID)
+		newLikePost(id, userID)
 	} else {
-		removeLike(id, userID)
+		removeLikePost(id, userID)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
 }
 
-func DislikeHandler(w http.ResponseWriter, r *http.Request) {
+func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
 	title := r.FormValue("title")
 
@@ -75,13 +74,13 @@ func DislikeHandler(w http.ResponseWriter, r *http.Request) {
 	userID := getIDByUUID(getSessionUUID(r))
 
 	if hasUserLikedPost(id, userID) {
-		removeLike(id, userID)
+		removeLikePost(id, userID)
 	}
 
 	if !hasUserDislikedPost(id, userID) {
-		newDislike(id, userID)
+		newDislikePost(id, userID)
 	} else {
-		removeDislike(id, userID)
+		removeDislikePost(id, userID)
 	}
 
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
@@ -103,4 +102,56 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	newComment(id, content, getUsernameByUUID(getSessionUUID(r)))
 
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
+}
+
+func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
+	commentID := r.FormValue("comment_id")
+	postID := r.FormValue("post_id")
+	title := r.FormValue("title")
+
+	id, err := strconv.Atoi(commentID)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	userID := getIDByUUID(getSessionUUID(r))
+
+	if hasUserDislikedComment(id, userID) {
+		removeDislikeComment(id, userID)
+	}
+
+	if !hasUserLikedComment(id, userID) {
+		newLikeComment(id, userID)
+	} else {
+		removeLikeComment(id, userID)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
+}
+
+func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
+	commentID := r.FormValue("comment_id")
+	postID := r.FormValue("post_id")
+	title := r.FormValue("title")
+
+	id, err := strconv.Atoi(commentID)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	userID := getIDByUUID(getSessionUUID(r))
+
+	if hasUserLikedComment(id, userID) {
+		removeLikeComment(id, userID)
+	}
+
+	if !hasUserDislikedComment(id, userID) {
+		newDislikeComment(id, userID)
+	} else {
+		removeDislikeComment(id, userID)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
 }

@@ -40,7 +40,11 @@ type Posts struct {
 
 type Comment struct {
 	CommentID int
+	PostID    int
+	Title     string
 	Content   string
 	Timestamp string
 	Username  string
+	Likes     int
+	Dislikes  int
 }

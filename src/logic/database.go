@@ -90,12 +90,14 @@ func createData() {
     CREATE TABLE IF NOT EXISTS Likes (
         like_id INTEGER PRIMARY KEY,
         post_id INTEGER,
+		comment_id INTEGER,
         user_id INTEGER
     );
 
     CREATE TABLE IF NOT EXISTS Dislikes (
         dislike_id INTEGER PRIMARY KEY,
         post_id INTEGER,
+		comment_id INTEGER,
         user_id INTEGER
     );
     
@@ -314,6 +316,8 @@ func getCategoryName(categoryID int) string {
 	return name
 }
 
+// Post
+
 func getPostsByCategoryID(categoryID int) []Posts {
 	query := `SELECT post_id, title, content, timestamp, username FROM Posts WHERE category_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, categoryID)
@@ -349,8 +353,6 @@ func newPost(categoryID int, title, content, username string) (int, error) {
 	}
 	return int(id), nil
 }
-
-// Post-
 
 func fetchCommentsByID(postID int) (Posts, error) {
 	query := `SELECT title, content, timestamp, username FROM Posts WHERE post_id = ?;`
@@ -413,7 +415,7 @@ func hasUserLikedPost(postID, userID int) bool {
 	return count > 0
 }
 
-func newLike(postID, userID int) error {
+func newLikePost(postID, userID int) error {
 	query := `INSERT INTO Likes (post_id, user_id) VALUES (?, ?);`
 	_, err := db.Exec(query, postID, userID)
 	if err != nil {
@@ -435,7 +437,7 @@ func hasUserDislikedPost(postID, userID int) bool {
 	return count > 0
 }
 
-func newDislike(postID, userID int) error {
+func newDislikePost(postID, userID int) error {
 	query := `INSERT INTO Dislikes (post_id, user_id) VALUES (?, ?);`
 	_, err := db.Exec(query, postID, userID)
 	if err != nil {
@@ -445,7 +447,7 @@ func newDislike(postID, userID int) error {
 	return nil
 }
 
-func removeDislike(postID, userID int) error {
+func removeDislikePost(postID, userID int) error {
 	query := `DELETE FROM Dislikes WHERE post_id = ? AND user_id = ?;`
 	_, err := db.Exec(query, postID, userID)
 	if err != nil {
@@ -455,7 +457,7 @@ func removeDislike(postID, userID int) error {
 	return nil
 }
 
-func removeLike(postID, userID int) error {
+func removeLikePost(postID, userID int) error {
 	query := `DELETE FROM Likes WHERE post_id = ? AND user_id = ?;`
 	_, err := db.Exec(query, postID, userID)
 	if err != nil {
@@ -467,8 +469,9 @@ func removeLike(postID, userID int) error {
 
 // Comment
 
+// Wow, un peu long mais c'est pas mal
 func getCommentsByPostID(postID int) []Comment {
-	query := `SELECT comment_id, content, timestamp, username FROM Comments WHERE post_id = ? ORDER BY timestamp DESC;`
+	query := `SELECT comment_id, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE comment_id = c.comment_id) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE comment_id = c.comment_id) AS dislikes, post_id, (SELECT title FROM Posts WHERE post_id = c.post_id) AS title FROM Comments c WHERE post_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, postID)
 	if err != nil {
 		fmt.Println(err)
@@ -479,7 +482,7 @@ func getCommentsByPostID(postID int) []Comment {
 	var comments []Comment
 	for rows.Next() {
 		var comment Comment
-		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp); err != nil {
+		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Username, &comment.Likes, &comment.Dislikes, &comment.PostID, &comment.Title); err != nil {
 			fmt.Println(err)
 			return nil
 		}
@@ -491,6 +494,70 @@ func getCommentsByPostID(postID int) []Comment {
 func newComment(postID int, content, username string) error {
 	query := `INSERT INTO Comments (content, timestamp, username, post_id) VALUES (?, datetime('now'), ?, ?);`
 	_, err := db.Exec(query, content, username, postID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func hasUserLikedComment(commentID, userID int) bool {
+	query := `SELECT COUNT(*) FROM Likes WHERE comment_id = ? AND user_id = ?;`
+	row := db.QueryRow(query, commentID, userID)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return count > 0
+}
+
+func newLikeComment(commentID, userID int) error {
+	query := `INSERT INTO Likes (comment_id, user_id) VALUES (?, ?);`
+	_, err := db.Exec(query, commentID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func hasUserDislikedComment(commentID, userID int) bool {
+	query := `SELECT COUNT(*) FROM Dislikes WHERE comment_id = ? AND user_id = ?;`
+	row := db.QueryRow(query, commentID, userID)
+	var count int
+	err := row.Scan(&count)
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return count > 0
+}
+
+func newDislikeComment(commentID, userID int) error {
+	query := `INSERT INTO Dislikes (comment_id, user_id) VALUES (?, ?);`
+	_, err := db.Exec(query, commentID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func removeDislikeComment(commentID, userID int) error {
+	query := `DELETE FROM Dislikes WHERE comment_id = ? AND user_id = ?;`
+	_, err := db.Exec(query, commentID, userID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func removeLikeComment(commentID, userID int) error {
+	query := `DELETE FROM Likes WHERE comment_id = ? AND user_id = ?;`
+	_, err := db.Exec(query, commentID, userID)
 	if err != nil {
 		fmt.Println(err)
 		return err
