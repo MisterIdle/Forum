@@ -155,13 +155,13 @@ func resetImages() {
 	db.Exec(query)
 
 	// Reset toutes les images dans upload
-	files, err := os.ReadDir("./upload")
+	files, err := os.ReadDir("./img/upload/")
 	if err != nil {
 		return
 	}
 
 	for _, file := range files {
-		os.Remove("./upload/" + file.Name())
+		os.Remove("./img/upload/" + file.Name())
 	}
 }
 
@@ -173,6 +173,7 @@ func checkUserEmail(email string) bool {
 	if err != nil {
 		return false
 	}
+	return true
 }
 
 func checkUserUsername(username string) bool {
@@ -183,6 +184,7 @@ func checkUserUsername(username string) bool {
 	if err != nil {
 		return false
 	}
+	return true
 }
 
 func getCredentialsByEmail(email string) (string, string) {
@@ -683,12 +685,26 @@ func getImagesByPostID(postID int) []string {
 	return images
 }
 
-func deleteImage(imageName string) error {
-	query := `DELETE FROM Images WHERE image_name = ?;`
-	_, err := db.Exec(query, imageName)
+func deleteImageByPostID(postID int) error {
+	query := `DELETE FROM Images WHERE post_id = ?;`
+	_, err := db.Exec(query, postID)
 	if err != nil {
 		return err
 	}
+
+	// Reset toutes les images dans upload qui comment par postID
+	files, err := os.ReadDir("./img/upload/")
+	if err != nil {
+		return err
+	}
+
+	for _, file := range files {
+		// Check si le nom du fichier commence par postID
+		if file.Name()[:len(fmt.Sprint(postID))] == fmt.Sprint(postID) {
+			os.Remove("./img/upload/" + file.Name())
+		}
+	}
+
 	return nil
 }
 

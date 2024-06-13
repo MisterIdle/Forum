@@ -50,6 +50,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
 
+	deleteImageByPostID(id)
 	deletePost(id)
 }
 
