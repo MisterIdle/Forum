@@ -27,24 +27,13 @@ func InitData() {
 	if *force {
 		os.Remove("./database.db")
 		createData()
-		resetUsers()
-		resetCategories()
-		resetPosts()
-		resetComments()
-		resetLikes()
-		resetDislikes()
+		resetAll()
 		createBasicCategories()
 	}
 
 	if *reset {
-		resetUsers()
-		resetCategories()
-		resetPosts()
-		resetComments()
-		resetLikes()
-		resetDislikes()
+		resetAll()
 		createBasicCategories()
-
 		fmt.Println("Database reset")
 	}
 
@@ -53,11 +42,6 @@ func InitData() {
 
 func createData() {
 	query := `
-    CREATE TABLE IF NOT EXISTS Ranks (
-        rank_id INTEGER PRIMARY KEY,
-        rank_name VARCHAR
-    );
-
     CREATE TABLE IF NOT EXISTS Users (
         user_id INTEGER PRIMARY KEY,
         uuid TEXT UNIQUE,
@@ -67,8 +51,12 @@ func createData() {
         code TEXT,
         creation DATETIME,
         rank_id INTEGER,
-        picture VARCHAR,
-        FOREIGN KEY (rank_id) REFERENCES Ranks(rank_id)
+        picture VARCHAR
+    );
+
+	CREATE TABLE IF NOT EXISTS Ranks (
+        rank_id INTEGER PRIMARY KEY,
+        rank_name VARCHAR
     );
 
     CREATE TABLE IF NOT EXISTS Categories (
@@ -122,57 +110,69 @@ func createData() {
 	}
 }
 
+func resetAll() {
+	resetUsers()
+	resetCategories()
+	resetPosts()
+	resetComments()
+	resetLikes()
+	resetDislikes()
+	resetImages()
+}
+
 func resetUsers() {
 	query := `DELETE FROM Users;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
 }
 
 func resetCategories() {
 	query := `DELETE FROM Categories;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
 }
 
 func resetPosts() {
 	query := `DELETE FROM Posts;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
 }
 
 func resetComments() {
 	query := `DELETE FROM Comments;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
 }
 
 func resetLikes() {
 	query := `DELETE FROM Likes;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
 }
 
 func resetDislikes() {
 	query := `DELETE FROM Dislikes;`
-	_, err := db.Exec(query)
-	if err != nil {
-		fmt.Println(err)
-	}
+	db.Exec(query)
+}
+
+func resetImages() {
+	query := `DELETE FROM Images;`
+	db.Exec(query)
 }
 
 func checkUserEmail(email string) bool {
 	query := `SELECT email FROM Users WHERE email = ?;`
 	row := db.QueryRow(query, email)
+	var result string
+	err := row.Scan(&result)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false
+		}
+		fmt.Println(err)
+		return false
+	}
+	return true
+}
+
+func checkUserUsername(username string) bool {
+	query := `SELECT username FROM Users WHERE username = ?;`
+	row := db.QueryRow(query, username)
 	var result string
 	err := row.Scan(&result)
 	if err != nil {
@@ -291,7 +291,7 @@ func createBasicCategories() {
 }
 
 func fetchCategories() (map[string][]Category, error) {
-	query := `SELECT category_id, name, description, global, (SELECT COUNT(*) FROM Posts WHERE category_id = c.category_id) AS totals FROM Categories c;`
+	query := `SELECT category_id, name, description, global, (SELECT COUNT(*) FROM Posts WHERE category_id = c.category_id) AS total_posts, (SELECT COUNT(*) FROM Comments WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = c.category_id)) AS total_comments FROM Categories c ORDER BY global;`
 	rows, err := db.Query(query)
 	if err != nil {
 		fmt.Println(err)
@@ -301,7 +301,7 @@ func fetchCategories() (map[string][]Category, error) {
 	categories := make(map[string][]Category)
 	for rows.Next() {
 		var category Category
-		if err := rows.Scan(&category.CategoryID, &category.Name, &category.Description, &category.Global, &category.Totals); err != nil {
+		if err := rows.Scan(&category.CategoryID, &category.Name, &category.Description, &category.Global, &category.TotalPosts, &category.TotalComments); err != nil {
 			fmt.Println(err)
 			return nil, err
 		}

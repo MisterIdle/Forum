@@ -5,38 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bienvenue</title>
 
-    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
+    <header class="header">
 
-    {{if .LoggedIn}}
-    <section class="login-section">
-        <a href="/logout">Se déconnecter</a>
-    </section>
-    {{else}}
-    <section class="login-section">
-        <a href="/login">Se connecter</a>
-    </section>
-    {{end}}
-
+        <div class="logo">
+            <!--Forum logo-->
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profil</a>
+        {{else}}
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+        {{end}}
+    </header>    
+    
     <div class="categories-container">
-        <h2><i class="fas fa-home"></i> Accueil</h2>
+        <div class="categories-tableau">
+            <div class="category-header"><i class="fas fa-list"></i><a href="/"> Topics</a></div>
+            <div class="category-stats-header">
+                <div class="category-stats">Comments</div>
+                <div class="category-stats">Posts</div>
+            </div>
+        </div>
+    
         {{range $global, $categories := .Data.Categories}}
-            <h3>{{ $global }}</h3>
+            <h3 class="category-global">{{$global}}</h3>
             <div class="category-list">
                 {{range $categories}}
-                    <div class="category">
+                <div class="category">
+                    <div class="category-info">
                         <a href="/categories?id={{.CategoryID}}" class="category-name">{{.Name}}</a>
                         <p class="category-description">{{.Description}}</p>
-                        <p class="category-message">{{.Totals}} posts</p>
                     </div>
+                    <div class="category-stats-count">
+                        <div class="category-stats">{{.TotalComments}}</div>
+                        <div class="category-stats">{{.TotalPosts}}</div>
+                    </div>
+                </div>                            
                 {{end}}
             </div>
         {{else}}
             <p>No category available.</p>
         {{end}}
     </div>
-    
+        
     <script src="../javascript/script.js"></script>
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>

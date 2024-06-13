@@ -1,6 +1,7 @@
 package logic
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -30,6 +31,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if checkUserEmail(email) {
 		data.Error = "Email already exists"
+		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		return
+	}
+
+	if checkUserUsername(username) {
+		data.Error = "Username already exists"
 		RenderTemplateGlobal(w, r, "templates/register.html", data)
 		return
 	}
@@ -90,6 +97,7 @@ func isUserLoggedIn(r *http.Request) bool {
 		return false
 	}
 
+	fmt.Println("Session found")
 	return session.LoggedIn
 }
 

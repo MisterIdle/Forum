@@ -24,7 +24,7 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 		CategoryID:  id,
 		Name:        getCategoryName(id),
 		Description: getCategoryDescription(id),
-		Totals:      getPostTotalsByCategoryID(id),
+		TotalPosts:  getPostTotalsByCategoryID(id),
 		Posts:       getPostsByCategoryID(id),
 	}
 

@@ -5,8 +5,8 @@ type ErrorMessage struct {
 }
 
 type Data struct {
-	Data     interface{}
-	LoggedIn bool
+	Data    interface{}
+	Session Session
 }
 
 type Session struct {
@@ -21,12 +21,13 @@ type Categories struct {
 }
 
 type Category struct {
-	CategoryID  int
-	Name        string
-	Description string
-	Totals      int
-	Global      string
-	Posts       []Posts
+	CategoryID    int
+	Name          string
+	Description   string
+	TotalPosts    int
+	TotalComments int
+	Global        string
+	Posts         []Posts
 }
 
 type Posts struct {

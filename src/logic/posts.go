@@ -46,6 +46,11 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isUserLoggedIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	userID := getIDByUUID(getSessionUUID(r))
 
 	if hasUserDislikedPost(id, userID) {
@@ -68,6 +73,11 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(postID)
 	if err != nil {
 		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	if !isUserLoggedIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 
@@ -115,6 +125,11 @@ func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !isUserLoggedIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
 	userID := getIDByUUID(getSessionUUID(r))
 
 	if hasUserDislikedComment(id, userID) {
@@ -138,6 +153,11 @@ func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
 		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	if !isUserLoggedIn(r) {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
 		return
 	}
 

@@ -14,8 +14,10 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 	}
 
 	dataWithSession := Data{
-		Data:     data,
-		LoggedIn: isUserLoggedIn(r),
+		Data: data,
+		Session: Session{
+			LoggedIn: isUserLoggedIn(r),
+		},
 	}
 
 	err = tmpt.Execute(w, dataWithSession)

@@ -5,40 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Categories</title>
 
-    <link rel="stylesheet" href="../styles/styles.css">
+    <link rel="stylesheet" href="../styles/style.css">
 </head>
 <body>
-    <header>
-        <h1>{{.Data.Name}}</h1>
-    </header>
+    <header class="header">
 
-    {{if .LoggedIn}}
-    <section class="create-post-section">
-        <form action="/create-post" method="POST" enctype="multipart/form-data">
-            <input type="hidden" name="category_id" value="{{.Data.CategoryID}}">
-            <input type="text" name="title" placeholder="Title" required>
-            <textarea name="content" placeholder="Content" required></textarea>
-            <input type="file" name="image" multiple="multiple" accept="image/*">
-            <button type="submit">Create Post</button>
-        </form>
-    </section>
-    {{else}}
-    <section class="login-section">
-        <a href="/logout">Login to create a post</a>
-    </section>
-    {{end}}
-
-    <section class="posts-section">
-        {{range .Data.Posts}}
-        <article class="post">
-            <button class="post-title" onclick="window.location.href='/categories/post?name={{.Title}}&id={{.PostID}}'">{{.Title}}</button>
-            <p>{{.Content}}</p>
-            <p><em>{{.Timestamp}}</em></p>
-            <p>By {{.Username}}</p>
-        </article>
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profil</a>
         {{else}}
-        <p>No posts available.</p>
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
-    </section>
+    </header> 
+
+    <div class="categories-container">
+        <div class="categories-tableau">
+            <div class="category-header"><i class="fas fa-list"></i><a href="/"> Topics</a> <i class="fas fa-arrow-right"></i><a href="/categories/?id={{.Data.CategoryID}}"> {{.Data.Name}}</a></div>
+        </div>
+
+        {{if .Session.LoggedIn}}
+        <h3 class="category-global">Create Post</h3>
+            <div class="new-post">
+                <form action="/create-post" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="category_id" value="{{.Data.CategoryID}}">
+                    <input type="text" name="title" placeholder="Title" required maxlength="100">
+                    <textarea name="content" placeholder="Content" required maxlength="1000"></textarea>
+                    <input type="file" name="image" multiple="multiple" accept="image/*">
+                    <button type="submit">Create Post</button>
+                </form>
+            </div>
+        {{end}}
+
+        <div class="posts-container">
+            <h3 class="category-global">Posts</h3>
+            <div class="posts-tableau">
+                {{range .Data.Posts}}
+                    <div class="post">
+                        <a href="/categories/post?name={{.Title}}&id={{.PostID}}" class="post-title">{{.Title}}</a>
+                        <div class="post-content">{{.Content}}</div>
+                        <div class="post-date">{{.Timestamp}}</div>
+                        <div class="post-author">{{.Username}}</div>
+                    </div>
+                {{else}}
+                    <p>No post available.</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <script src="../javascript/script.js"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>
