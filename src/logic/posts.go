@@ -131,6 +131,22 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
 }
 
+func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
+	commentID := r.FormValue("comment_id")
+	postID := r.FormValue("post_id")
+	title := r.FormValue("title")
+
+	id, err := strconv.Atoi(commentID)
+	if err != nil {
+		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		return
+	}
+
+	deleteComment(id)
+
+	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
+}
+
 func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	commentID := r.FormValue("comment_id")
 	postID := r.FormValue("post_id")

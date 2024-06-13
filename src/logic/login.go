@@ -21,6 +21,11 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	data := ErrorMessage{Error: ""}
 
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	if password != confirmPassword {
 		data.Error = "Passwords do not match"
 		RenderTemplateGlobal(w, r, "templates/register.html", data)
@@ -53,17 +58,16 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 	data := ErrorMessage{Error: ""}
 
+	if isUserLoggedIn(r) {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
 	var hashedPassword, username string
 	if strings.Contains(user, "@") {
 		hashedPassword, username = getCredentialsByEmail(user)
 	} else {
 		hashedPassword, username = getCredentialsByUsername(user)
-	}
-
-	if hashedPassword == "" {
-		data.Error = "Invalid username/email"
-		RenderTemplateGlobal(w, r, "templates/register.html", data)
-		return
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {

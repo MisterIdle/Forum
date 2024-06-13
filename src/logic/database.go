@@ -269,6 +269,53 @@ func newUser(username, email, password, picture string) error {
 	return nil
 }
 
+// Change tout les username utiliser pour le post avec le même username
+func changeProfileUsername(username, uuid string) error {
+
+	query := `UPDATE Posts SET username = ? WHERE username = (SELECT username FROM Users WHERE uuid = ?);`
+	_, err := db.Exec(query, username, uuid)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	query = `UPDATE Comments SET username = ? WHERE username = (SELECT username FROM Users WHERE uuid = ?);`
+	_, err = db.Exec(query, username, uuid)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `UPDATE Users SET username = ? WHERE uuid = ?;`
+	_, err = db.Exec(query, username, uuid)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+
+}
+
+func changeProfilePassword(password, uuid string) error {
+	query := `UPDATE Users SET password = ? WHERE uuid = ?;`
+	_, err := db.Exec(query, password, uuid)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func changeProfileEmail(email, uuid string) error {
+	query := `UPDATE Users SET email = ? WHERE uuid = ?;`
+	_, err := db.Exec(query, email, uuid)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
 // Category
 
 func createCategory(name, description, global string) error {
@@ -391,6 +438,12 @@ func newPost(categoryID int, title, content, username string) (int, error) {
 
 func deletePost(postID int) error {
 	query := `DELETE FROM Likes WHERE post_id = ?;`
+	if _, err := db.Exec(query, postID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `DELETE FROM Dislikes WHERE post_id = ?;`
 	if _, err := db.Exec(query, postID); err != nil {
 		fmt.Println(err)
 		return err
@@ -582,6 +635,28 @@ func newComment(postID int, content, username string) error {
 	return nil
 }
 
+func deleteComment(commentID int) error {
+	query := `DELETE FROM Likes WHERE comment_id = ?;`
+	if _, err := db.Exec(query, commentID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `DELETE FROM Dislikes WHERE comment_id = ?;`
+	if _, err := db.Exec(query, commentID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `DELETE FROM Comments WHERE comment_id = ?;`
+	if _, err := db.Exec(query, commentID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+
 func hasUserLikedComment(commentID, userID int) bool {
 	query := `SELECT COUNT(*) FROM Likes WHERE comment_id = ? AND user_id = ?;`
 	row := db.QueryRow(query, commentID, userID)
@@ -682,10 +757,10 @@ func getImagesByPostID(postID int) []string {
 // Profile
 
 func fetchProfile(username string) (Profile, error) {
-	query := `SELECT username, uuid, picture, (SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE username = ?)), creation FROM Users WHERE username = ?;`
-	row := db.QueryRow(query, username, username)
+	query := `SELECT username, uuid, picture, (SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE username = ?)), creation, (SELECT COUNT(*) FROM Posts WHERE username = ?) AS total_posts, (SELECT COUNT(*) FROM Comments WHERE username = ?) AS total_comments, (SELECT COUNT(*) FROM Likes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)) AS total_likes, (SELECT COUNT(*) FROM Dislikes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)) AS total_dislikes FROM Users WHERE username = ?;`
+	row := db.QueryRow(query, username, username, username, username, username, username)
 	var profile Profile
-	err := row.Scan(&profile.Username, &profile.UUID, &profile.Picture, &profile.Rank, &profile.Timestamp)
+	err := row.Scan(&profile.Username, &profile.UUID, &profile.Picture, &profile.Rank, &profile.Timestamp, &profile.TotalPosts, &profile.TotalComments, &profile.TotalLikes, &profile.TotalDislikes)
 	if err != nil {
 		fmt.Println(err)
 		return Profile{}, err

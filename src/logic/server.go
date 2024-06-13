@@ -32,6 +32,11 @@ func HandleAll() {
 	http.HandleFunc("/create-post", CreatePostHandler)
 	http.HandleFunc("/delete-post", DeletePostHandler)
 	http.HandleFunc("/create-comment", CreateCommentHandler)
+	http.HandleFunc("/delete-comment", DeleteCommentHandler)
+
+	http.HandleFunc("/change-username", ChangeProfileUsernameHandler)
+	http.HandleFunc("/change-password", ChangeProfilePasswordHandler)
+	http.HandleFunc("/change-email", ChangeProfileEmailHandler)
 
 	http.HandleFunc("/like-post", LikePostHandler)
 	http.HandleFunc("/dislike-post", DislikePostHandler)
@@ -56,27 +61,17 @@ func IndexHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplateGlobal(w, r, "templates/index.html", data)
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		Register(w, r)
+		Login(w, r)
 		return
 	}
 	RenderTemplateWithoutData(w, "templates/register.html")
 }
 
-func LoginHandler(w http.ResponseWriter, r *http.Request) {
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		Login(w, r)
+		Register(w, r)
 		return
 	}
 	RenderTemplateWithoutData(w, "templates/register.html")

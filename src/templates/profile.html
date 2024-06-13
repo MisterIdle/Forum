@@ -24,13 +24,51 @@
 
     <div class="profile-container">
         <div class="profile-header">
-            <div class="profile-username">{{.Data.Username}}</div>
-            <div class="profile-uuid">{{.Data.UUID}}</div>
-            <div class="profile-joined">Joined: {{.Data.Timestamp}}</div>
-            <div class="profile-role">Role: {{.Data.Rank}}</div>
-            <div class="profile-picture">
-                <img src="/img/{{.Data.Picture}}" alt="Profile picture">
+            {{if .Session.LoggedIn}}
+                {{if eq .Session.Username .Data.Username}}
+                    <div class="profile-settings-container">
+                        <div class="profile-settings-dropdown">
+                            <div class="profile-settings"><i class="fas fa-cog"></i> Settings</div>
+                            <div class="settings-menu">
+                                <form action="/change-username" method="POST" class="change-username-form">
+                                    <input type="text" name="username" placeholder="{{.Data.Username}}" maxlength="20" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
+                
+                                <form action="/change-password" method="POST" class="change-password-form">
+                                    <input type="password" name="password" placeholder="Password" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
+                
+                                <form action="/change-email" method="POST" class="change-email-form">
+                                    <input type="email" name="email" placeholder="example@gmail.com" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="profile-uuid">UUID: {{.Data.UUID}}</div>
+                    </div>
+                {{end}}
+            {{end}}
+        
+            <div class="profile-info">
+                <div class="profile-picture">
+                    <img src="/img/{{.Data.Picture}}" alt="Profile picture">
+                </div>
+                <div class="profile-username">{{.Data.Username}}</div>
+                <div class="profile-role">Role: {{.Data.Rank}}</div>
+                <div class="profile-joined">Joined: {{.Data.Timestamp}}</div>
             </div>
+        </div>
+            
+        <div class="stats">
+            <div class="profile-posts-count">Posts: {{.Data.TotalPosts}}</div>
+            <div class="profile-comments-count">Comments: {{.Data.TotalComments}}</div>
+            <div class="profile-likes-count">Likes: {{.Data.TotalLikes}}</div>
+            <div class="profile-dislikes-count">Dislikes: {{.Data.TotalDislikes}}</div>
         </div>
 
         <div class="profile-posts">

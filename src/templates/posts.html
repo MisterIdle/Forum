@@ -24,7 +24,11 @@
 
     <div class="categories-container">
         <div class="categories-tableau">
-            <div class="category-header"><i class="fas fa-list"></i><a href="/"> Topics</a> <i class="fas fa-arrow-right"></i><a href="/categories/?id={{.Data.CategoryID}}"> {{.Data.CategoryName}}</a> <i class="fas fa-arrow-right"></i> {{.Data.Title}}</div>
+            <div class="category-header">
+                <i class="fas fa-list"></i><a href="/"> Topics</a>
+                <i class="fas fa-arrow-right"></i><a href="/categories/?id={{.Data.CategoryID}}"> {{.Data.CategoryName}}</a>
+                <i class="fas fa-arrow-right"></i> {{.Data.Title}}
+            </div>
         </div>
 
         <div class="post-container">
@@ -55,8 +59,8 @@
                 </form>
 
                 {{if .Session.LoggedIn}}
-                    {{if .Session.Username | eq .Data.Username}}
-                        <form action="/delete-post" method="POST">
+                    {{if eq .Session.Username .Data.Username}}
+                        <form action="/delete-post" method="POST" class="delete-form">
                             <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                             <button type="submit">Delete</button>
                         </form>
@@ -65,7 +69,6 @@
             </div>
         </div>
 
-        
         <div class="comments-container">
             <h3 class="category-global">Comments</h3>
 
@@ -81,30 +84,15 @@
 
             <div class="comments-tableau">
                 {{range .Data.Comments}}
-                <div class="comment">
-                    <div class="comment-author"><a href="/profile?name={{.Username}}">{{.Username}}</a></div>
-                    <div class="comment-content">{{.Content}}</div>
-                    <div class="comment-date">{{.Timestamp}}</div>
-            
-                    <form action="/like-comment" method="POST" class="like-form">
-                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                        <input type="hidden" name="title" value="{{.Title}}">
-                        <input type="hidden" name="post_id" value="{{.PostID}}">
-                        <h2>{{.Likes}}</h2>
-                        <button type="submit"><i class="fas fa-heart"></i></button>
-                    </form>
-            
-                    <form action="/dislike-comment" method="POST" class="dislike-form">
-                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                        <input type="hidden" name="title" value="{{.Title}}">
-                        <input type="hidden" name="post_id" value="{{.PostID}}">
-                        <h2>{{.Dislikes}}</h2>
-                        <button type="submit"><i class="fas fa-heart-broken"></i></button>
-                    </form>
-                </div>
-            {{else}}
-                <p>No comment available.</p>
-            {{end}}
+                    <div class="comment">
+                        <div class="comment-header">
+                            <div class="comment-author"><a href="/profile?name={{.Username}}">{{.Username}}</a></div>
+                            <div class="comment-content">{{.Content}}</div>
+                            <div class="comment-date">{{.Timestamp}}</div>
+                        </div>
+                    </div>
+                {{end}}
+            </div>
         </div>
     </div>
 

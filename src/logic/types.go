@@ -17,13 +17,17 @@ type Session struct {
 }
 
 type Profile struct {
-	Username  string
-	UUID      string
-	Picture   string
-	Rank      string
-	Timestamp string
-	Posts     []Posts
-	Comments  []Comment
+	Username      string
+	UUID          string
+	Picture       string
+	Rank          string
+	Timestamp     string
+	TotalPosts    int
+	TotalComments int
+	TotalLikes    int
+	TotalDislikes int
+	Posts         []Posts
+	Comments      []Comment
 }
 
 type Categories struct {
