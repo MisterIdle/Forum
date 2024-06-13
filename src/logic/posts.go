@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 func PostsHandler(w http.ResponseWriter, r *http.Request) {
@@ -18,11 +17,9 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	post, err := fetchCommentsByID(id)
 	if err != nil {
-		http.Error(w, "Error retrieving post", http.StatusInternalServerError)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
-
-	post.Title = strings.Replace(post.Title, "_", " ", -1)
 
 	data := Posts{
 		PostID:       id,
@@ -39,6 +36,21 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	RenderTemplateGlobal(w, r, "templates/posts.html", data)
+}
+
+func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
+	postID := r.FormValue("post_id")
+	title := r.FormValue("title")
+
+	id, err := strconv.Atoi(postID)
+	if err != nil {
+		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		return
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
+
+	deletePost(id)
 }
 
 func LikePostHandler(w http.ResponseWriter, r *http.Request) {

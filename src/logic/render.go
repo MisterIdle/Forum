@@ -16,6 +16,7 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 	dataWithSession := Data{
 		Data: data,
 		Session: Session{
+			Username: getUsernameByUUID(getSessionUUID(r)),
 			LoggedIn: isUserLoggedIn(r),
 		},
 	}

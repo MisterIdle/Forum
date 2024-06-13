@@ -29,6 +29,7 @@ body {
     color: #ccc;
 }
 
+
 /* Header Styles */
 header {
     background-color: #292A37;
@@ -69,7 +70,8 @@ header .register:hover {
     background-color: #00b300;
 }
 
-/* Categories Container */
+
+/* Categories */
 .categories-container {
     background-color: #292A37;
     margin: 20px auto;
@@ -78,7 +80,6 @@ header .register:hover {
     padding: 20px;
 }
 
-/* Categories Tableau (Title) */
 .categories-tableau {
     margin-bottom: 25px;
     border-bottom: 2px solid #ffffff;
@@ -107,7 +108,6 @@ header .register:hover {
     gap: 30px;
 }
 
-/* Category List */
 .category {
     background-color: #36374a;
     padding: 15px;
@@ -163,13 +163,13 @@ header .register:hover {
     margin-right: 30px;
 }
 
-/* Category List */
 .category-list {
     display: grid;
     gap: 20px;
 }
 
-/* Posts Container */
+
+/* Posts */
 .posts-container {
     margin-top: 20px;
 }
@@ -203,10 +203,11 @@ header .register:hover {
     color: #ccc;
 }
 
-.post-author {
+.post-author a {
     color: #c0c0c0;
     font-size: 14px;
     margin-bottom: 5px;
+    text-decoration: none;
 }
 
 .post-date {
@@ -219,7 +220,6 @@ header .register:hover {
     font-size: 16px;
 }
 
-/* New Post Section */
 .new-post {
     background-color: #36374a;
     padding: 20px;
@@ -269,7 +269,6 @@ header .register:hover {
     transform: translateY(-2px);
 }
 
-/* Post Content */
 .post-content {
     max-width: 1000px;
     overflow: hidden;
@@ -277,7 +276,8 @@ header .register:hover {
     white-space: nowrap;
 }
 
-/* Comments Section */
+
+/* Comments */
 .comments-container {
     margin-top: 20px;
 }
@@ -293,9 +293,10 @@ header .register:hover {
     border-radius: 5px;
 }
 
-.comment-author {
+.comment-author a {
     color: #ffdd57;
     font-weight: bold;
+    text-decoration: none;
 }
 
 .comment-content {
@@ -308,7 +309,6 @@ header .register:hover {
     margin-top: 5px;
 }
 
-/* Post Comment Section */
 .post-comment {
     margin-top: 20px;
 }
@@ -350,7 +350,6 @@ header .register:hover {
     transform: translateY(-2px);
 }
 
-/* posts image */
 .post-image {
     display: flex;
     gap: 10px;
@@ -375,8 +374,6 @@ header .register:hover {
     height: auto;
     border-radius: 5px;
 }
-
-/* Like and Dislike Form */
 
 .likes-container {
     display: flex;
@@ -424,3 +421,119 @@ header .register:hover {
     display: inline;
     margin-right: 5px;
 }
+
+
+/* Auth Container */
+.auth-container {
+    max-width: 500px;
+    margin: 25px auto;
+    padding: 30px;
+    background-color: #292A37;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+.auth-container h1 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 25px;
+    padding: 10px;
+    background-color: #222231;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.auth-form h1 {
+    color: #fff;
+    font-size: 28px;
+    text-align: center;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-form .form-group label {
+    color: #c0c0c0;
+    margin-top: 25px;
+    font-size: 18px;
+}
+
+.auth-form .form-group input {
+    background-color: #36374A;
+    border: none;
+    padding: 15px;
+    color: #fff;
+    border-radius: 5px;
+    font-size: 18px;
+}
+
+.auth-form .form-group input:focus {
+    outline: none;
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.auth-form button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: 15px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    font-size: 18px;
+    width: 100%;
+    text-align: center;
+}
+
+.auth-form .toggle-button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    font-size: 16px;
+    text-decoration: underline;
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.input-wrapper .toggle-password {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #c0c0c0;
+}
+
+.password {
+    /* grandi le formulaire de mot de passe */
+    width: 100%;
+    
+}
+
+.input-wrapper {
+    position: relative;
+}
+
+.login-button {
+    font-size: 18px;
+}
+
+.login-button:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+.auth-form .error-message {
+    margin-top: 20px;
+    color: #ff6b6b;
+    text-align: center;
+    font-size: 16px;
+}
+

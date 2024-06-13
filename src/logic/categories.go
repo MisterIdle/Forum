@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 )
 
 const MaxImageSize = 20 * 1024 * 1024
@@ -41,8 +40,6 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		return
 	}
-
-	title = strings.Replace(title, " ", "_", -1)
 
 	postID, err := newPost(id, title, content, getUsernameByUUID(getSessionUUID(r)))
 	if err != nil {

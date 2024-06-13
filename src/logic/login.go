@@ -17,7 +17,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
-	confirmPassword := r.FormValue("confirm")
+	confirmPassword := r.FormValue("confirmPassword")
 
 	data := ErrorMessage{Error: ""}
 
@@ -114,8 +114,11 @@ func createSession(w http.ResponseWriter, username string) {
 		Value: sessionToken,
 	})
 }
-
 func getSessionUUID(r *http.Request) string {
-	cookie, _ := r.Cookie("session_token")
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		return ""
+	}
+
 	return cookie.Value
 }

@@ -29,11 +29,13 @@ func InitData() {
 		createData()
 		resetAll()
 		createBasicCategories()
+		createBasicRanks()
 	}
 
 	if *reset {
 		resetAll()
 		createBasicCategories()
+		createBasicRanks()
 		fmt.Println("Database reset")
 	}
 
@@ -48,7 +50,6 @@ func createData() {
         username VARCHAR,
         email VARCHAR UNIQUE,
         password VARCHAR,
-        code TEXT,
         creation DATETIME,
         rank_id INTEGER,
         picture VARCHAR
@@ -258,7 +259,7 @@ func newUser(username, email, password, picture string) error {
 		return err
 	}
 
-	query := `INSERT INTO Users (uuid, username, email, password, code, creation, rank_id, picture) VALUES (?, ?, ?, ?, null, datetime('now'), 1, ?);`
+	query := `INSERT INTO Users (uuid, username, email, password, creation, rank_id, picture) VALUES (?, ?, ?, ?, datetime('now'), 1, ?);`
 	_, err = db.Exec(query, uuid.String(), username, email, password, picture)
 	if err != nil {
 		fmt.Println(err)
@@ -320,6 +321,7 @@ func getCategoryName(categoryID int) string {
 		fmt.Println(err)
 		return ""
 	}
+
 	return name
 }
 
@@ -355,6 +357,7 @@ func getPostsByCategoryID(categoryID int) []Posts {
 		}
 		posts = append(posts, post)
 	}
+
 	return posts
 }
 
@@ -384,6 +387,28 @@ func newPost(categoryID int, title, content, username string) (int, error) {
 		return 0, err
 	}
 	return int(id), nil
+}
+
+func deletePost(postID int) error {
+	query := `DELETE FROM Likes WHERE post_id = ?;`
+	if _, err := db.Exec(query, postID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `DELETE FROM Comments WHERE post_id = ?;`
+	if _, err := db.Exec(query, postID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	query = `DELETE FROM Posts WHERE post_id = ?;`
+	if _, err := db.Exec(query, postID); err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
 }
 
 func fetchCommentsByID(postID int) (Posts, error) {
@@ -525,9 +550,8 @@ func removeLikePost(postID, userID int) error {
 
 // Comment
 
-// Wow, un peu long mais c'est pas mal
 func getCommentsByPostID(postID int) []Comment {
-	query := `SELECT comment_id, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE comment_id = c.comment_id) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE comment_id = c.comment_id) AS dislikes, post_id, (SELECT title FROM Posts WHERE post_id = c.post_id) AS title FROM Comments c WHERE post_id = ? ORDER BY timestamp DESC;`
+	query := `SELECT comment_id, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE comment_id = c.comment_id) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE comment_id = c.comment_id) AS dislikes, post_id, (SELECT title FROM Posts WHERE post_id = c.post_id) FROM Comments c WHERE post_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, postID)
 	if err != nil {
 		fmt.Println(err)
@@ -542,6 +566,7 @@ func getCommentsByPostID(postID int) []Comment {
 			fmt.Println(err)
 			return nil
 		}
+
 		comments = append(comments, comment)
 	}
 	return comments
@@ -652,4 +677,80 @@ func getImagesByPostID(postID int) []string {
 	}
 
 	return images
+}
+
+// Profile
+
+func fetchProfile(username string) (Profile, error) {
+	query := `SELECT username, uuid, picture, (SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE username = ?)), creation FROM Users WHERE username = ?;`
+	row := db.QueryRow(query, username, username)
+	var profile Profile
+	err := row.Scan(&profile.Username, &profile.UUID, &profile.Picture, &profile.Rank, &profile.Timestamp)
+	if err != nil {
+		fmt.Println(err)
+		return Profile{}, err
+	}
+	return profile, nil
+}
+
+func fetchProfilePosts(username string) []Posts {
+	query := `SELECT post_id, title, content, timestamp, (SELECT name FROM Categories WHERE category_id = (SELECT category_id FROM Posts WHERE post_id = p.post_id)) FROM Posts p WHERE username = ? ORDER BY timestamp DESC;`
+	rows, err := db.Query(query, username)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer rows.Close()
+
+	var posts []Posts
+	for rows.Next() {
+		var post Posts
+		if err := rows.Scan(&post.PostID, &post.Title, &post.Content, &post.Timestamp, &post.CategoryName); err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		posts = append(posts, post)
+	}
+
+	return posts
+}
+
+func fetchProfileComments(username string) []Comment {
+	query := `SELECT comment_id, content, timestamp, (SELECT title FROM Posts WHERE post_id = c.post_id), post_id FROM Comments c WHERE username = ? ORDER BY timestamp DESC;`
+	rows, err := db.Query(query, username)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer rows.Close()
+
+	var comments []Comment
+	for rows.Next() {
+		var comment Comment
+		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Title, &comment.PostID); err != nil {
+			fmt.Println(err)
+			return nil
+		}
+		comments = append(comments, comment)
+	}
+
+	return comments
+}
+
+// Rank
+
+func createRank(name string) error {
+	query := `INSERT INTO Ranks (rank_name) VALUES (?);`
+	_, err := db.Exec(query, name)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	return nil
+}
+
+func createBasicRanks() {
+	createRank("User")
+	createRank("Moderator")
+	createRank("Administrator")
 }

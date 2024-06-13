@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
@@ -15,43 +14,96 @@
     
         {{if .Session.LoggedIn}}
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profil</a>
+            <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
             <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
-    </header> 
+    </header>
 
-    <div class="login-container">
-        <form id="registerForm" action="/register" method="post">
+    <div class="auth-container">
+        <form id="registerForm" action="/register" method="post" class="auth-form">
             <h1>Signup</h1>
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
-            <label for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
-            <label for="confirm">Confirm password:</label>
-            <input type="password" id="confirm" name="confirm" required>
-            <a onclick="toggleForm('loginForm')">Already have an account?</a>
-            <input type="submit" value="Register">
-            <div style="color: red; margin-top: 15px;">{{.Data.Error}}</div>
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" required maxlength="20" placeholder="Sambre">
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required placeholder="exemple@gmail.fr">
+            </div>
+            <div class="form-group password-group">
+                <label for="password">Password:</label>
+                <div class="input-wrapper">
+                    <input class="password" type="password" id="registerPassword" name="password" required>
+                    <i class="toggle-password fas fa-eye-slash" onclick="togglePassword('registerPassword', this)"></i>
+                </div>
+            </div>
+            <div class="form-group password-group">
+                <label for="confirmPassword">Confirm password:</label>
+                <div class="input-wrapper">
+                    <input class="password" type="password" id="registerConfirmPassword" name="confirmPassword" required>
+                    <i class="toggle-password fas fa-eye-slash" onclick="togglePassword('registerConfirmPassword', this)"></i>
+                </div>
+            </div>
+            <div class="error-message">{{.Data.Error}}</div>
+            <button type="button" class="toggle-button" onclick="toggleForm('loginForm')">Already have an account?</button>
+            <button type="submit" class="login-button">Signup</button>
         </form>
 
-        <form id="loginForm" action="/login" method="post" class="hidden">
+        <form id="loginForm" action="/login" method="post" class="auth-form hidden">
             <h1>Login</h1>
-            <label for="user">Username or Email:</label>
-            <input type="text" id="user" name="user" required>
-
-            <label for="loginPassword">Password:</label>
-            <input type="password" id="loginPassword" name="password" required>
-            <a onclick="toggleForm('registerForm')">Don't have an account?</a>
-            <input type="submit" value="Login">
-            <div style="color: red; margin-top: 15px;">{{.Data.Error}}</div>
+            <div class="form-group">
+                <label for="user">Username or Email:</label>
+                <input type="text" id="user" name="user" required>
+            </div>
+            <div class="form-group password-group">
+                <label for="loginPassword">Password:</label>
+                <div class="input-wrapper">
+                    <input class="password" type="password" id="loginPassword" name="password" required>
+                    <i class="toggle-password fas fa-eye-slash" onclick="togglePassword('loginPassword', this)"></i>
+                </div>
+            </div>
+            <div class="error-message">{{.Data.Error}}</div>
+            <button type="button" class="toggle-button" onclick="toggleForm('registerForm')">Don't have an account?</button>
+            <button type="submit" class="login-button">Login</button>
         </form>
     </div>
 
-    <script src="/javascript/script.js"></script>
+    <script>
+        function togglePassword(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            }
+        }
+
+        function toggleForm(formId) {
+            const registerForm = document.getElementById("registerForm");
+            const loginForm = document.getElementById("loginForm");
+
+            if (formId === "registerForm") {
+                registerForm.style.display = "block";
+                loginForm.style.display = "none";
+            } else {
+                registerForm.style.display = "none";
+                loginForm.style.display = "block";
+            }
+        }
+
+        if (window.location.href.includes("register")) {
+            toggleForm("registerForm");
+        } else {
+            toggleForm("loginForm");
+        }
+    </script>
+    
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

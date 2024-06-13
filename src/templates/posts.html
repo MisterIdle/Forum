@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post > {{.Data.Title}}</title>
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
-<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
-
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
@@ -18,7 +15,7 @@
     
         {{if .Session.LoggedIn}}
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
-            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profile</a>
+            <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
             <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
@@ -34,7 +31,7 @@
             <div class="post-title">{{.Data.Title}}</div>
             <div class="post-content">{{.Data.Content}}</div>
             <div class="post-date">{{.Data.Timestamp}}</div>
-            <div class="post-author">{{.Data.Username}}</div>
+            <div class="post-author"><a href="/profile?name={{.Data.Username}}">{{.Data.Username}}</a></div>
             <div class="post-image">
                 {{range .Data.Images}}
                     <a class="post-image-link" href="/img/upload/{{.}}" target="_blank">
@@ -56,9 +53,19 @@
                     <h2>{{.Data.Dislikes}}</h2>
                     <button type="submit"><i class="fas fa-heart-broken"></i></button>
                 </form>
+
+                {{if .Session.LoggedIn}}
+                    {{if .Session.Username | eq .Data.Username}}
+                        <form action="/delete-post" method="POST">
+                            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                            <button type="submit">Delete</button>
+                        </form>
+                    {{end}}
+                {{end}}
             </div>
         </div>
 
+        
         <div class="comments-container">
             <h3 class="category-global">Comments</h3>
 
@@ -74,35 +81,33 @@
 
             <div class="comments-tableau">
                 {{range .Data.Comments}}
-                    <div class="comment">
-                        <div class="comment-author">{{.Username}}</div>
-                        <div class="comment-content">{{.Content}}</div>
-                        <div class="comment-date">{{.Timestamp}}</div>
-
-                        <form action="/like-comment" method="POST" class="like-form">
-                            <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                            <input type="hidden" name="title" value="{{.Title}}">
-                            <input type="hidden" name="post_id" value="{{.PostID}}">
-                            <h2>{{.Likes}}</h2>
-                            <button type="submit"><i class="fas fa-heart"></i></button>
-                        </form>
+                <div class="comment">
+                    <div class="comment-author"><a href="/profile?name={{.Username}}">{{.Username}}</a></div>
+                    <div class="comment-content">{{.Content}}</div>
+                    <div class="comment-date">{{.Timestamp}}</div>
             
-                        <form action="/dislike-comment" method="POST" class="dislike-form">
-                            <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                            <input type="hidden" name="title" value="{{.Title}}">
-                            <input type="hidden" name="post_id" value="{{.PostID}}">
-                            <h2>{{.Dislikes}}</h2>
-                            <button type="submit"><i class="fas fa-heart-broken"></i></button>
-                        </form>
-                    </div>
-                {{else}}
-                    <p>No comment available.</p>
-                {{end}}
-            </div>
+                    <form action="/like-comment" method="POST" class="like-form">
+                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                        <input type="hidden" name="title" value="{{.Title}}">
+                        <input type="hidden" name="post_id" value="{{.PostID}}">
+                        <h2>{{.Likes}}</h2>
+                        <button type="submit"><i class="fas fa-heart"></i></button>
+                    </form>
+            
+                    <form action="/dislike-comment" method="POST" class="dislike-form">
+                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                        <input type="hidden" name="title" value="{{.Title}}">
+                        <input type="hidden" name="post_id" value="{{.PostID}}">
+                        <h2>{{.Dislikes}}</h2>
+                        <button type="submit"><i class="fas fa-heart-broken"></i></button>
+                    </form>
+                </div>
+            {{else}}
+                <p>No comment available.</p>
+            {{end}}
         </div>
     </div>
 
-    <script src="/javascript/script.js"></script>
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

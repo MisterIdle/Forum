@@ -24,11 +24,13 @@ func HandleAll() {
 	http.HandleFunc("/", IndexHandler)
 	http.HandleFunc("/categories/", CategoriesHandler)
 	http.HandleFunc("/categories/post/", PostsHandler)
+	http.HandleFunc("/profile/", ProfileHandler)
 
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 
 	http.HandleFunc("/create-post", CreatePostHandler)
+	http.HandleFunc("/delete-post", DeletePostHandler)
 	http.HandleFunc("/create-comment", CreateCommentHandler)
 
 	http.HandleFunc("/like-post", LikePostHandler)

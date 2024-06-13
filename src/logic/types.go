@@ -16,6 +16,16 @@ type Session struct {
 	LoggedIn bool
 }
 
+type Profile struct {
+	Username  string
+	UUID      string
+	Picture   string
+	Rank      string
+	Timestamp string
+	Posts     []Posts
+	Comments  []Comment
+}
+
 type Categories struct {
 	Categories map[string][]Category
 }
@@ -53,4 +63,5 @@ type Comment struct {
 	Username  string
 	Likes     int
 	Dislikes  int
+	Session   Session
 }

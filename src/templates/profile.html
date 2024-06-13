@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile > {{.Data.Username}}</title>
+
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
+        {{else}}
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+        {{end}}
+    </header>
+
+    <div class="profile-container">
+        <div class="profile-header">
+            <div class="profile-username">{{.Data.Username}}</div>
+            <div class="profile-uuid">{{.Data.UUID}}</div>
+            <div class="profile-joined">Joined: {{.Data.Timestamp}}</div>
+            <div class="profile-role">Role: {{.Data.Rank}}</div>
+            <div class="profile-picture">
+                <img src="/img/{{.Data.Picture}}" alt="Profile picture">
+            </div>
+        </div>
+
+        <div class="profile-posts">
+            <h2>Posts</h2>
+            {{range .Data.Posts}}
+                <div class="profile-post">
+                    <a href="/categories/post/?name={{.Title}}&id={{.PostID}}" class="profile-post-title">{{.Title}}</a>
+                    <div class="profile-post-content">{{.Content}}</div>
+                    <div class="profile-post-date">{{.Timestamp}}</div>
+                </div>
+            {{else}}
+                <div class="no-posts">No posts yet</div>
+            {{end}}
+        </div>
+
+        <div class="profile-comments">
+            <h2>Comments</h2>
+            {{if .Data.Comments}}
+                {{range .Data.Comments}}
+                    <div class="profile-comment">
+                        <a href="/categories/post/?name={{.Title}}&id={{.PostID}}" class="profile-comment-title">{{.Title}}</a>
+                        <div class="profile-comment-content">{{.Content}}</div>
+                        <div class="profile-comment-date">{{.Timestamp}}</div>
+                    </div>
+                {{end}}
+            {{else}}
+                <div class="no-comments">No comments yet</div>
+            {{end}}
+        </div>
+    </div>
+
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+</body>
+</html>
