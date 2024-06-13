@@ -42,7 +42,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title = strings.Replace(title, " ", "-", -1)
+	title = strings.Replace(title, " ", "_", -1)
 
 	postID, err := newPost(id, title, content, getUsernameByUUID(getSessionUUID(r)))
 	if err != nil {

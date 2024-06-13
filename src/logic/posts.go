@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 func PostsHandler(w http.ResponseWriter, r *http.Request) {
@@ -21,16 +22,20 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post.Title = strings.Replace(post.Title, "_", " ", -1)
+
 	data := Posts{
-		PostID:    id,
-		Title:     post.Title,
-		Content:   post.Content,
-		Timestamp: post.Timestamp,
-		Username:  getUsernameByPostID(id),
-		Likes:     getLikesByPostID(id),
-		Dislikes:  getDislikesByPostID(id),
-		Images:    getImagesByPostID(id),
-		Comments:  getCommentsByPostID(id),
+		PostID:       id,
+		Title:        post.Title,
+		Content:      post.Content,
+		Timestamp:    post.Timestamp,
+		Username:     getUsernameByPostID(id),
+		Likes:        getLikesByPostID(id),
+		Dislikes:     getDislikesByPostID(id),
+		Images:       getImagesByPostID(id),
+		Comments:     getCommentsByPostID(id),
+		CategoryName: getCategoryNameByPostID(id),
+		CategoryID:   getCategoryIDByPostID(id),
 	}
 
 	RenderTemplateGlobal(w, r, "templates/posts.html", data)

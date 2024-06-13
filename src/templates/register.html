@@ -3,11 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration Form</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-F0aK6C9wT9oyMzwVg5F3LBwxrLi/CtRdgfO6lJi7fYyZt3SfD0A2B/AhE6ZYezESR3RzEZDkcrQh5oSl+znfNQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Login</title>
+
+    <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
-    <div class="border">
+    <header class="header">
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profil</a>
+        {{else}}
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+        {{end}}
+    </header> 
+
+    <div class="login-container">
         <form id="registerForm" action="/register" method="post">
             <h1>Signup</h1>
             <label for="username">Username:</label>
@@ -36,7 +51,7 @@
         </form>
     </div>
 
-    <script src="../javascript/script.js"></script>
+    <script src="/javascript/script.js"></script>
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

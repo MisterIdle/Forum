@@ -3,75 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{.Data.Title}}</title>
+    <title>Post > {{.Data.Title}}</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+<script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+
+    <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
-    <header>
-        <h1>{{.Data.Title}}</h1>
-        <h2>{{.Data.Content}}</h2>
-        {{range .Data.Images}}
-        <img src="/img/upload/{{.}}" alt="Image">
+    <header class="header">
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile" class="profile"><i class="fas fa-user"></i> Profile</a>
+        {{else}}
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
-        <p><em>{{.Data.Timestamp}}</em></p>
-        <h2>By {{.Data.Username}}</h2>
     </header>
 
-    <section class="like-dislike-section">
-        <form action="/like-post" method="POST">
-            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-            <input type="hidden" name="title" value="{{.Data.Title}}">
-            <h2>{{.Data.Likes}}</h2>
-            <button type="submit">Like</button>
-        </form>
-        <form action="/dislike-post" method="POST">
-            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-            <input type="hidden" name="title" value="{{.Data.Title}}">
-            <h2>{{.Data.Dislikes}}</h2>
-            <button type="submit">Dislike</button>
-        </form>
-    </section>
+    <div class="categories-container">
+        <div class="categories-tableau">
+            <div class="category-header"><i class="fas fa-list"></i><a href="/"> Topics</a> <i class="fas fa-arrow-right"></i><a href="/categories/?id={{.Data.CategoryID}}"> {{.Data.CategoryName}}</a> <i class="fas fa-arrow-right"></i> {{.Data.Title}}</div>
+        </div>
 
-    {{if .Session.LoggedIn}}
-    <section class="create-comment-section">
-        <form action="/create-comment" method="POST">
-            <textarea name="content" placeholder="Comment"></textarea>
-            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-            <input type="hidden" name="title" value="{{.Data.Title}}">
-            <button type="submit">Create Comment</button>
-        </form>
-    </section>
-    {{else}}
-    <section class="login-section">
-        <a href="/logout">Login to create a comment</a>
-    </section>
-    {{end}}
+        <div class="post-container">
+            <div class="post-title">{{.Data.Title}}</div>
+            <div class="post-content">{{.Data.Content}}</div>
+            <div class="post-date">{{.Data.Timestamp}}</div>
+            <div class="post-author">{{.Data.Username}}</div>
+            <div class="post-image">
+                {{range .Data.Images}}
+                    <a class="post-image-link" href="/img/upload/{{.}}" target="_blank">
+                        <img src="/img/upload/{{.}}" alt="Image">
+                    </a>
+                {{end}}
+            </div>
 
-    <section class="comments-section">
-        {{range .Data.Comments}}
-        <article class="comment">
-            <p>{{.Content}}</p>
-            <p><em>{{.Timestamp}}</em></p>
-            <p>By {{.Username}}</p>
-            <h2>{{.Likes}} Likes</h2>
-            <h2>{{.Dislikes}} Dislikes</h2>
+            <div class="likes-container">
+                <form action="/like-post" method="POST" class="like-form">
+                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                    <input type="hidden" name="title" value="{{.Data.Title}}">
+                    <h2>{{.Data.Likes}}</h2>
+                    <button type="submit"><i class="fas fa-heart"></i></button>
+                </form>
+                <form action="/dislike-post" method="POST" class="dislike-form">
+                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                    <input type="hidden" name="title" value="{{.Data.Title}}">
+                    <h2>{{.Data.Dislikes}}</h2>
+                    <button type="submit"><i class="fas fa-heart-broken"></i></button>
+                </form>
+            </div>
+        </div>
 
-            <form action="/like-comment" method="POST">
-                <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                <input type="hidden" name="title" value="{{.Title}}">
-                <input type="hidden" name="post_id" value="{{.PostID}}">
-                <button type="submit">Like</button>
-            </form>
+        <div class="comments-container">
+            <h3 class="category-global">Comments</h3>
 
-            <form action="/dislike-comment" method="POST">
-                <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                <input type="hidden" name="title" value="{{.Title}}">
-                <input type="hidden" name="post_id" value="{{.PostID}}">
-                <button type="submit">Dislike</button>
-            </form>
-        </article>
-        {{else}}
-        <p>No comments available.</p>
-        {{end}}
-    </section>
+            {{if .Session.LoggedIn}}
+                <div class="post-comment">
+                    <form action="/create-comment" method="POST">
+                        <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                        <textarea name="content" placeholder="Comment" required maxlength="1000"></textarea>
+                        <button type="submit">Comment</button>
+                    </form>
+                </div>
+            {{end}}
+
+            <div class="comments-tableau">
+                {{range .Data.Comments}}
+                    <div class="comment">
+                        <div class="comment-author">{{.Username}}</div>
+                        <div class="comment-content">{{.Content}}</div>
+                        <div class="comment-date">{{.Timestamp}}</div>
+
+                        <form action="/like-comment" method="POST" class="like-form">
+                            <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                            <input type="hidden" name="title" value="{{.Title}}">
+                            <input type="hidden" name="post_id" value="{{.PostID}}">
+                            <h2>{{.Likes}}</h2>
+                            <button type="submit"><i class="fas fa-heart"></i></button>
+                        </form>
+            
+                        <form action="/dislike-comment" method="POST" class="dislike-form">
+                            <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                            <input type="hidden" name="title" value="{{.Title}}">
+                            <input type="hidden" name="post_id" value="{{.PostID}}">
+                            <h2>{{.Dislikes}}</h2>
+                            <button type="submit"><i class="fas fa-heart-broken"></i></button>
+                        </form>
+                    </div>
+                {{else}}
+                    <p>No comment available.</p>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <script src="/javascript/script.js"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -31,15 +31,17 @@ type Category struct {
 }
 
 type Posts struct {
-	PostID    int
-	Title     string
-	Content   string
-	Username  string
-	Timestamp string
-	Likes     int
-	Dislikes  int
-	Images    []string
-	Comments  []Comment
+	PostID       int
+	Title        string
+	Content      string
+	Username     string
+	Timestamp    string
+	Likes        int
+	Dislikes     int
+	Images       []string
+	Comments     []Comment
+	CategoryName string
+	CategoryID   int
 }
 
 type Comment struct {

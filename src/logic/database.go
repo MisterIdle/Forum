@@ -423,6 +423,30 @@ func getDislikesByPostID(postID int) int {
 	return dislikes
 }
 
+func getCategoryNameByPostID(postID int) string {
+	query := `SELECT name FROM Categories WHERE category_id = (SELECT category_id FROM Posts WHERE post_id = ?);`
+	row := db.QueryRow(query, postID)
+	var name string
+	err := row.Scan(&name)
+	if err != nil {
+		fmt.Println(err)
+		return ""
+	}
+	return name
+}
+
+func getCategoryIDByPostID(postID int) int {
+	query := `SELECT category_id FROM Posts WHERE post_id = ?;`
+	row := db.QueryRow(query, postID)
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		fmt.Println(err)
+		return 0
+	}
+	return id
+}
+
 func getUsernameByPostID(postID int) string {
 	query := `SELECT username FROM Posts WHERE post_id = ?;`
 	row := db.QueryRow(query, postID)
