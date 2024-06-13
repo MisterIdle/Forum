@@ -1,7 +1,6 @@
 package logic
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -101,7 +100,6 @@ func isUserLoggedIn(r *http.Request) bool {
 		return false
 	}
 
-	fmt.Println("Session found")
 	return session.LoggedIn
 }
 
