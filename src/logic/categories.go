@@ -65,7 +65,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !isValideType(fileHandler.Header.Get("Content-Type")) {
+		if !isValidType(fileHandler.Header.Get("Content-Type")) {
 			http.Error(w, "Invalid file type", http.StatusBadRequest)
 			return
 		}
@@ -85,7 +85,7 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, postID), http.StatusSeeOther)
 }
 
-func isValideType(fileType string) bool {
+func isValidType(fileType string) bool {
 	switch fileType {
 	case "image/png", "image/jpg", "image/jpeg", "image/gif", "image/svg", "image/webp":
 		return true

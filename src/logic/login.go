@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -45,7 +46,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newUser(username, email, string(hashedPassword), "Default.png")
+	newUser(username, email, string(hashedPassword), "Default.png", 1)
 	createSession(w, username)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
@@ -116,6 +117,24 @@ func createSession(w http.ResponseWriter, username string) {
 		Value: sessionToken,
 	})
 }
+
+func forceLogout(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		return
+	}
+
+	sessionToken := cookie.Value
+
+	delete(sessions, sessionToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+}
+
 func getSessionUUID(r *http.Request) string {
 	cookie, err := r.Cookie("session_token")
 	if err != nil {

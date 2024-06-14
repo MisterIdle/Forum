@@ -2,7 +2,9 @@ package logic
 
 import (
 	"fmt"
+	"io"
 	"net/http"
+	"os"
 )
 
 func ProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -22,7 +24,7 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 	data := Profile{
 		Username:      profile.Username,
 		UUID:          profile.UUID,
-		Picture:       profile.Picture,
+		Picture:       getProfilePictureByUUID(profile.UUID),
 		Rank:          profile.Rank,
 		Timestamp:     profile.Timestamp,
 		TotalPosts:    profile.TotalPosts,
@@ -47,9 +49,7 @@ func ChangeProfileUsernameHandler(w http.ResponseWriter, r *http.Request) {
 
 	changeProfileUsername(username, uuid)
 
-	fmt.Println("Username changed to: ", username)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, fmt.Sprintf("/profile/?name=%s", username), http.StatusSeeOther)
 }
 
 func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,9 +58,7 @@ func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 	changeProfilePassword(hashedPassword(password), uuid)
 
-	fmt.Println("Password changed to: ", password)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func ChangeProfileEmailHandler(w http.ResponseWriter, r *http.Request) {
@@ -74,7 +72,82 @@ func ChangeProfileEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	changeProfileEmail(email, uuid)
 
-	fmt.Println("Email changed to: ", email)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func ChangeProfilePictureHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseMultipartForm(10 << 20)
+
+	file, handler, err := r.FormFile("picture")
+	if err != nil {
+		http.Error(w, "Error uploading file", http.StatusInternalServerError)
+		return
+	}
+
+	defer file.Close()
+
+	fileSize := handler.Size
+	if fileSize > MaxImageSize {
+		http.Error(w, "Image is too large. Maximum allowed size is 20 MB.", http.StatusBadRequest)
+		return
+	}
+
+	if !isValidType(handler.Header.Get("Content-Type")) {
+		http.Error(w, "Invalid file type", http.StatusBadRequest)
+		return
+	}
+
+	uuid := r.FormValue("uuid")
+
+	oldPicture := getProfilePictureByUUID(uuid)
+	if oldPicture != "Default.png" {
+		err := os.Remove(fmt.Sprintf("./img/profile/%s", oldPicture))
+		if err != nil {
+			http.Error(w, "Error removing old picture", http.StatusInternalServerError)
+			return
+		}
+	}
+
+	dst, _ := os.Create(fmt.Sprintf("./img/profile/%s_%s", uuid, handler.Filename))
+	defer dst.Close()
+
+	io.Copy(dst, file)
+
+	changeProfilePicture(fmt.Sprintf("%s_%s", uuid, handler.Filename), uuid)
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
+	uuid := r.FormValue("uuid")
+
+	deleteProfile(uuid)
+
+	forceLogout(w, r)
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
+	uuid := r.FormValue("uuid")
+
+	promoteUser(uuid)
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func DemoteUserHandler(w http.ResponseWriter, r *http.Request) {
+	uuid := r.FormValue("uuid")
+
+	demoteUser(uuid)
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+}
+
+func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
+	uuid := r.FormValue("uuid")
+
+	deleteProfile(uuid)
+
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }

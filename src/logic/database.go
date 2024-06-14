@@ -4,7 +4,10 @@ import (
 	"database/sql"
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/gofrs/uuid"
 	_ "github.com/mattn/go-sqlite3"
@@ -29,6 +32,7 @@ func InitData() {
 		resetAll()
 		createBasicCategories()
 		createBasicRanks()
+		createAdminUser()
 
 		fmt.Println("Database has been removed and reset")
 	}
@@ -37,6 +41,7 @@ func InitData() {
 		resetAll()
 		createBasicCategories()
 		createBasicRanks()
+		createAdminUser()
 
 		fmt.Println("Database has been reset")
 	}
@@ -118,6 +123,7 @@ func resetAll() {
 	resetLikes()
 	resetDislikes()
 	resetImages()
+	resetRanks()
 }
 
 func resetUsers() {
@@ -150,6 +156,11 @@ func resetDislikes() {
 	db.Exec(query)
 }
 
+func resetRanks() {
+	query := `DELETE FROM Ranks;`
+	db.Exec(query)
+}
+
 func resetImages() {
 	query := `DELETE FROM Images;`
 	db.Exec(query)
@@ -161,8 +172,39 @@ func resetImages() {
 	}
 
 	for _, file := range files {
-		os.Remove("./img/upload/" + file.Name())
+		if file.Name() != "Default.png" {
+			os.Remove("./img/upload/" + file.Name())
+		}
 	}
+
+	// Reset toutes les images dans profile
+	files, err = os.ReadDir("./img/profile/")
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		if file.Name() != "Default.png" {
+			os.Remove("./img/profile/" + file.Name())
+		}
+	}
+}
+
+func createAdminUser() {
+	password := newRandomPassword()
+	newUser("Admin", "Admin", hashedPassword(password), "Default.png", 3)
+	fmt.Println("Admin password: ", password)
+}
+
+func newRandomPassword() string {
+	rand.New(rand.NewSource(time.Now().UnixNano()))
+	chars := []rune("ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖabcdefghijklmnopqrstuvwxyzåäö0123456789")
+	length := 10
+	var password strings.Builder
+	for i := 0; i < length; i++ {
+		password.WriteRune(chars[rand.Intn(len(chars))])
+	}
+	return password.String()
 }
 
 func checkUserEmail(email string) bool {
@@ -242,14 +284,14 @@ func getUUIDByUsername(username string) string {
 	return uuid
 }
 
-func newUser(username, email, password, picture string) error {
+func newUser(username, email, password, picture string, rankID int) error {
 	uuid, err := uuid.NewV4()
 	if err != nil {
 		return err
 	}
 
-	query := `INSERT INTO Users (uuid, username, email, password, creation, rank_id, picture) VALUES (?, ?, ?, ?, datetime('now'), 1, ?);`
-	_, err = db.Exec(query, uuid.String(), username, email, password, picture)
+	query := `INSERT INTO Users (uuid, username, email, password, creation, rank_id, picture) VALUES (?, ?, ?, ?, datetime('now'), ?, ?);`
+	_, err = db.Exec(query, uuid.String(), username, email, password, rankID, picture)
 	if err != nil {
 		return err
 	}
@@ -287,6 +329,15 @@ func changeProfilePassword(password, uuid string) error {
 func changeProfileEmail(email, uuid string) error {
 	query := `UPDATE Users SET email = ? WHERE uuid = ?;`
 	_, err := db.Exec(query, email, uuid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func changeProfilePicture(picture, uuid string) error {
+	query := `UPDATE Users SET picture = ? WHERE uuid = ?;`
+	_, err := db.Exec(query, picture, uuid)
 	if err != nil {
 		return err
 	}
@@ -709,12 +760,30 @@ func deleteImageByPostID(postID int) error {
 }
 
 // Profile
+func fetchAllUsernames() []string {
+	query := `SELECT username FROM Users;`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var usernames []string
+	for rows.Next() {
+		var username string
+		if err := rows.Scan(&username); err != nil {
+			return nil
+		}
+		usernames = append(usernames, username)
+	}
+	return usernames
+}
 
 func fetchProfile(username string) (Profile, error) {
-	query := `SELECT username, uuid, picture, (SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE username = ?)), creation, (SELECT COUNT(*) FROM Posts WHERE username = ?) AS total_posts, (SELECT COUNT(*) FROM Comments WHERE username = ?) AS total_comments, (SELECT COUNT(*) FROM Likes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)) AS total_likes, (SELECT COUNT(*) FROM Dislikes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)) AS total_dislikes FROM Users WHERE username = ?;`
+	query := `SELECT username, uuid, (SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE username = ?)), creation, (SELECT COUNT(*) FROM Posts WHERE username = ?), (SELECT COUNT(*) FROM Comments WHERE username = ?), (SELECT COUNT(*) FROM Likes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)), (SELECT COUNT(*) FROM Dislikes WHERE user_id = (SELECT user_id FROM Users WHERE username = ?)) FROM Users WHERE username = ?;`
 	row := db.QueryRow(query, username, username, username, username, username, username)
 	var profile Profile
-	err := row.Scan(&profile.Username, &profile.UUID, &profile.Picture, &profile.Rank, &profile.Timestamp, &profile.TotalPosts, &profile.TotalComments, &profile.TotalLikes, &profile.TotalDislikes)
+	err := row.Scan(&profile.Username, &profile.UUID, &profile.Rank, &profile.Timestamp, &profile.TotalPosts, &profile.TotalComments, &profile.TotalLikes, &profile.TotalDislikes)
 	if err != nil {
 		return Profile{}, err
 	}
@@ -759,11 +828,85 @@ func fetchProfileComments(username string) []Comment {
 	return comments
 }
 
-// Rank
+func getProfilePictureByUUID(uuid string) string {
+	query := `SELECT picture FROM Users WHERE uuid = ?;`
+	row := db.QueryRow(query, uuid)
+	var picture string
+	err := row.Scan(&picture)
+	if err != nil {
+		return ""
+	}
+	return picture
+}
 
+func deleteProfile(uuid string) error {
+	query := `DELETE FROM Likes WHERE user_id = (SELECT user_id FROM Users WHERE uuid = ?);`
+	if _, err := db.Exec(query, uuid); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Dislikes WHERE user_id = (SELECT user_id FROM Users WHERE uuid = ?);`
+	if _, err := db.Exec(query, uuid); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Comments WHERE username = (SELECT username FROM Users WHERE uuid = ?);`
+	if _, err := db.Exec(query, uuid); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Posts WHERE username = (SELECT username FROM Users WHERE uuid = ?);`
+	if _, err := db.Exec(query, uuid); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Users WHERE uuid = ?;`
+	if _, err := db.Exec(query, uuid); err != nil {
+		return err
+	}
+
+	// Delete son image de profile
+	picture := getProfilePictureByUUID(uuid)
+	if picture != "Default.png" {
+		os.Remove("./img/profile/" + picture)
+	}
+
+	return nil
+}
+
+// Rank
 func createRank(name string) error {
 	query := `INSERT INTO Ranks (rank_name) VALUES (?);`
 	_, err := db.Exec(query, name)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func getRankByUUID(uuid string) string {
+	query := `SELECT rank_name FROM Ranks WHERE rank_id = (SELECT rank_id FROM Users WHERE uuid = ?);`
+	row := db.QueryRow(query, uuid)
+	var rank string
+	err := row.Scan(&rank)
+	if err != nil {
+		return ""
+	}
+	return rank
+}
+
+func promoteUser(uuid string) error {
+	query := `UPDATE Users SET rank_id = (SELECT rank_id FROM Users WHERE uuid = ?) + 1 WHERE uuid = ? AND (SELECT rank_id FROM Users WHERE uuid = ?) < 3;`
+	_, err := db.Exec(query, uuid, uuid, uuid)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func demoteUser(uuid string) error {
+	query := `UPDATE Users SET rank_id = (SELECT rank_id FROM Users WHERE uuid = ?) - 1 WHERE uuid = ? AND (SELECT rank_id FROM Users WHERE uuid = ?) > 1;`
+	_, err := db.Exec(query, uuid, uuid, uuid)
 	if err != nil {
 		return err
 	}

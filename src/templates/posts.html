@@ -14,6 +14,10 @@
         </div>
     
         {{if .Session.LoggedIn}}
+            {{if eq .Session.Rank "Moderator" "Administrator"}}
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {{end}}
+
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
@@ -46,22 +50,19 @@
 
             <div class="likes-container">
                 <form action="/like-post" method="POST" class="like-form">
-                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-                    <input type="hidden" name="title" value="{{.Data.Title}}">
                     <h2>{{.Data.Likes}}</h2>
+                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                     <button type="submit"><i class="fas fa-heart"></i></button>
                 </form>
                 <form action="/dislike-post" method="POST" class="dislike-form">
-                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-                    <input type="hidden" name="title" value="{{.Data.Title}}">
                     <h2>{{.Data.Dislikes}}</h2>
+                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                     <button type="submit"><i class="fas fa-heart-broken"></i></button>
                 </form>
 
                 {{if .Session.LoggedIn}}
                     {{if eq .Session.Username .Data.Username}}
                         <form action="/delete-post" method="POST" class="delete-form">
-                            <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                             <button type="submit">Delete</button>
                         </form>
                     {{end}}

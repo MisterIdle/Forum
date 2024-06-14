@@ -25,6 +25,7 @@ func HandleAll() {
 	http.HandleFunc("/categories/", CategoriesHandler)
 	http.HandleFunc("/categories/post/", PostsHandler)
 	http.HandleFunc("/profile/", ProfileHandler)
+	http.HandleFunc("/dashboard/", DashboardHandler)
 
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
@@ -37,6 +38,12 @@ func HandleAll() {
 	http.HandleFunc("/change-username", ChangeProfileUsernameHandler)
 	http.HandleFunc("/change-password", ChangeProfilePasswordHandler)
 	http.HandleFunc("/change-email", ChangeProfileEmailHandler)
+	http.HandleFunc("/change-picture", ChangeProfilePictureHandler)
+	http.HandleFunc("/delete-account", DeleteProfileHandler)
+
+	http.HandleFunc("/promote", PromoteUserHandler)
+	http.HandleFunc("/demote", DemoteUserHandler)
+	http.HandleFunc("/delete", DeleteUserHandler)
 
 	http.HandleFunc("/like-post", LikePostHandler)
 	http.HandleFunc("/dislike-post", DislikePostHandler)

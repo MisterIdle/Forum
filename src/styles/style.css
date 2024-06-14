@@ -1,3 +1,25 @@
+:root {
+    --background-color: #21222e;
+    --text-color: #fff;
+    --hover-color: #ccc;
+    --header-bg-color: #292A37;
+    --highlight-bg-color: #007bff;
+    --highlight-hover-bg-color: #0056b3;
+    --error-color: #ff6b6b;
+    --error-hover-color: #ff4c4c;
+    --success-bg-color: #007500;
+    --success-hover-bg-color: #00b300;
+    --secondary-bg-color: #2d2e3c;
+    --light-bg-color: #222231;
+    --medium-bg-color: #36374a;
+    --dark-bg-color: #4a4b62;
+    --info-color: #c0c0c0;
+    --uuid-color: #a0a0a0;
+    --link-color: #007bff;
+    --link-hover-color: #0056b3;
+    --comment-author-color: #ffdd57;
+}
+
 /* Reset CSS */
 * {
     margin: 0;
@@ -8,8 +30,8 @@
 /* Body Styles */
 body {
     font-family: Arial, sans-serif;
-    background-color: #21222e;
-    color: #fff;
+    background-color: var(--background-color);
+    color: var(--text-color);
     line-height: 1.6;
 }
 
@@ -19,20 +41,20 @@ body {
 }
 
 .logo a {
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
     font-size: 24px;
     font-weight: bold;
 }
 
 .logo a:hover {
-    color: #ccc;
+    color: var(--hover-color);
 }
 
 /* Header Styles */
 header {
-    background-color: #292A37;
-    color: #fff;
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
     padding: 15px 50px;
     display: flex;
     align-items: center;
@@ -42,7 +64,7 @@ header {
 }
 
 header a {
-    color: #fff;
+    color: var(--text-color);
     text-decoration: none;
     padding: 10px 15px;
     border-radius: 5px;
@@ -54,25 +76,25 @@ header a:hover {
 }
 
 header .logout {
-    background-color: #ff6b6b;
+    background-color: var(--error-color);
 }
 
 header .logout:hover {
-    background-color: #ff4c4c;
+    background-color: var(--error-hover-color);
 }
 
 header .register {
-    background-color: #007500;
+    background-color: var(--success-bg-color);
 }
 
 header .register:hover {
-    background-color: #00b300;
+    background-color: var(--success-hover-bg-color);
 }
 
 /* Profile Container */
 .profile-container {
-    background-color: #292A37;
-    color: #fff;
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
     padding: 20px;
     margin: 20px auto;
     max-width: 90%;
@@ -96,80 +118,92 @@ header .register:hover {
     text-align: left;
 }
 
-.profile-settings-dropdown {
-    position: relative;
-    display: inline-block;
-}
-
 .profile-settings {
-    cursor: pointer;
     padding: 10px;
-    background-color: #292A37;
+    background-color: var(--header-bg-color);
     border-radius: 5px;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-}
-
-.profile-settings:hover {
-    background-color: #4a4b62;
-    transform: translateY(-2px);
-}
-
-.settings-menu {
-    display: none;
-    position: absolute;
-    top: 40px;
-    left: 0;
-    background-color: #292A37;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.5);
-    z-index: 1;
-    min-width: 300px;
-    padding: 12px;
-    border-radius: 5px;
-}
-
-.profile-settings-dropdown:hover .settings-menu {
-    display: block;
 }
 
 .settings-menu form {
     display: flex;
-    flex-direction: column;
+    align-items: center;
     gap: 10px;
     margin-bottom: 25px;
 }
 
 .settings-menu input {
-    background-color: #2d2e3c;
+    background-color: var(--secondary-bg-color);
     border: none;
     padding: 10px;
-    color: #fff;
+    color: var(--text-color);
     border-radius: 5px;
     font-size: 16px;
+    flex: 1;
 }
 
 .settings-menu button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
     border: none;
-    padding: 10px;
+    padding: 8px 12px;
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-left: 10px;
+    flex-shrink: 0;
 }
 
 .settings-menu button:hover {
-    background-color: #0056b3;
+    background-color: var(--highlight-hover-bg-color);
     transform: translateY(-2px);
+}
+
+.settings-menu input[type="file"],
+.new-post input[type="file"] {
+    background-color: var(--secondary-bg-color);
+    padding: 10px;
+}
+
+.settings-menu input[type="file"]::file-selector-button,
+.new-post input[type="file"]::file-selector-button {
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 8px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-left: 10px;
+    flex-shrink: 0;
+}
+
+.settings-menu input[type="file"]::file-selector-button:hover,
+.new-post input[type="file"]::file-selector-button:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
+.profile-settings:hover .settings-menu {
+    display: block;
+}
+
+/* delete button */
+.profile-settings .delete {
+    background-color: var(--error-color);
+}
+
+.profile-settings .delete:hover {
+    background-color: var(--error-hover-color);
 }
 
 .profile-uuid {
     font-size: 12px;
-    color: #a0a0a0;
+    color: var(--uuid-color);
     margin-top: 5px;
 }
 
 .profile-info {
-    margin-top: 40px; /* Adjust the margin-top to create space for the settings container */
+    margin-top: 40px;
 }
 
 .profile-username {
@@ -181,7 +215,7 @@ header .register:hover {
 .profile-role,
 .profile-joined {
     font-size: 16px;
-    color: #c0c0c0;
+    color: var(--info-color);
     margin-bottom: 5px;
 }
 
@@ -196,22 +230,43 @@ header .register:hover {
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
 }
 
+.admin-menu {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.admin-menu button {
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.admin-menu button:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
 .stats {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    justify-content: center;
+    gap: 50px;
     margin-top: 20px;
 }
 
 .stats div {
     font-size: 16px;
-    color: #c0c0c0;
+    color: var(--info-color);
     margin-top: 5px;
 }
 
 .profile-posts h2,
 .profile-comments h2 {
-    background-color: #222231;
+    background-color: var(--light-bg-color);
     padding: 15px;
     border-radius: 5px;
     text-align: center;
@@ -226,7 +281,7 @@ header .register:hover {
 
 .profile-post,
 .profile-comment {
-    background-color: #36374a;
+    background-color: var(--medium-bg-color);
     padding: 15px;
     border-radius: 5px;
     margin-bottom: 20px;
@@ -235,13 +290,13 @@ header .register:hover {
 
 .profile-post:hover,
 .profile-comment:hover {
-    background-color: #4a4b62;
+    background-color: var(--dark-bg-color);
     transform: translateY(-2px);
 }
 
 .profile-post-title,
 .profile-comment-title {
-    color: #007bff;
+    color: var(--link-color);
     font-size: 20px;
     text-decoration: none;
     margin-bottom: 10px;
@@ -250,19 +305,19 @@ header .register:hover {
 
 .profile-post-title:hover,
 .profile-comment-title:hover {
-    color: #0056b3;
+    color: var(--link-hover-color);
 }
 
 .profile-post-content,
 .profile-comment-content {
-    color: #c0c0c0;
+    color: var(--info-color);
     margin-top: 5px;
     font-size: 16px;
 }
 
 .profile-post-date,
 .profile-comment-date {
-    color: #c0c0c0;
+    color: var(--info-color);
     font-size: 14px;
     margin-top: 10px;
     text-align: right;
@@ -270,7 +325,7 @@ header .register:hover {
 
 .no-posts,
 .no-comments {
-    color: #c0c0c0;
+    color: var(--info-color);
     text-align: center;
     font-size: 16px;
     margin-top: 20px;
@@ -278,7 +333,7 @@ header .register:hover {
 
 /* Categories */
 .categories-container {
-    background-color: #292A37;
+    background-color: var(--header-bg-color);
     margin: 20px auto;
     max-width: 90%;
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
@@ -287,8 +342,8 @@ header .register:hover {
 
 .categories-tableau {
     margin-bottom: 25px;
-    border-bottom: 2px solid #ffffff;
-    color: #ffffff;
+    border-bottom: 2px solid var(--text-color);
+    color: var(--text-color);
     font-size: 24px;
     display: flex;
     justify-content: space-between;
@@ -300,8 +355,8 @@ header .register:hover {
 }
 
 .category-global {
-    color: #ffffff;
-    background-color: #222231;
+    color: var(--text-color);
+    background-color: var(--light-bg-color);
     padding: 15px;
     margin-top: 25px;
     margin-bottom: 15px;
@@ -314,7 +369,7 @@ header .register:hover {
 }
 
 .category {
-    background-color: #36374a;
+    background-color: var(--medium-bg-color);
     padding: 15px;
     border-radius: 5px;
     display: flex;
@@ -324,12 +379,12 @@ header .register:hover {
 }
 
 .category:hover {
-    background-color: #4a4b62;
+    background-color: var(--dark-bg-color);
     transform: translateY(-2px);
 }
 
 .category-header a {
-    color: #fff;
+    color: var(--text-color);
     font-size: 25px;
     text-decoration: none;
 }
@@ -339,7 +394,7 @@ header .register:hover {
 }
 
 .category-name {
-    color: #fff;
+    color: var(--text-color);
     font-size: 20px;
     font-weight: bold;
     text-decoration: none;
@@ -347,11 +402,11 @@ header .register:hover {
 }
 
 .category-name:hover {
-    color: #ccc;
+    color: var(--hover-color);
 }
 
 .category-description {
-    color: #c0c0c0;
+    color: var(--info-color);
     margin-top: 5px;
     font-size: 14px;
     margin-bottom: 5px;
@@ -363,7 +418,7 @@ header .register:hover {
 }
 
 .category-stats {
-    color: #ffffff;
+    color: var(--text-color);
     font-size: 16px;
     margin-right: 30px;
 }
@@ -384,19 +439,19 @@ header .register:hover {
 }
 
 .post {
-    background-color: #36374a;
+    background-color: var(--medium-bg-color);
     padding: 15px;
     border-radius: 5px;
     transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .post:hover {
-    background-color: #4a4b62;
+    background-color: var(--dark-bg-color);
     transform: translateY(-2px);
 }
 
 .post-title {
-    color: #fff;
+    color: var(--text-color);
     font-size: 20px;
     text-decoration: none;
     margin-bottom: 10px;
@@ -404,28 +459,28 @@ header .register:hover {
 }
 
 .post-title:hover {
-    color: #ccc;
+    color: var(--hover-color);
 }
 
 .post-author a {
-    color: #c0c0c0;
+    color: var(--info-color);
     font-size: 14px;
     margin-bottom: 5px;
     text-decoration: none;
 }
 
 .post-date {
-    color: #c0c0c0;
+    color: var(--info-color);
     font-size: 14px;
 }
 
 .posts-tableau p {
-    color: #fff;
+    color: var(--text-color);
     font-size: 16px;
 }
 
 .new-post {
-    background-color: #36374a;
+    background-color: var(--medium-bg-color);
     padding: 20px;
     border-radius: 5px;
     margin-top: 20px;
@@ -439,10 +494,10 @@ header .register:hover {
 
 .new-post input[type="text"],
 .new-post textarea {
-    background-color: #2d2e3c;
+    background-color: var(--secondary-bg-color);
     border: none;
     padding: 10px;
-    color: #fff;
+    color: var(--text-color);
     border-radius: 5px;
     font-size: 16px;
 }
@@ -455,12 +510,12 @@ header .register:hover {
 
 /* Styles for file input */
 .new-post input[type="file"] {
-    background-color: #2d2e3c;
+    background-color: var(--secondary-bg-color);
 }
 
 .new-post input[type="file"]::file-selector-button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -469,23 +524,7 @@ header .register:hover {
 }
 
 .new-post input[type="file"]::file-selector-button:hover {
-    background-color: #0056b3;
-    transform: translateY(-2px);
-}
-
-.delete-form button {
-    background-color: #ff6b6b;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease, transform 0.3s ease;
-    margin-top: 10px;
-}
-
-.delete-form button:hover {
-    background-color: #ff4c4c;
+    background-color: var(--highlight-hover-bg-color);
     transform: translateY(-2px);
 }
 
@@ -495,8 +534,8 @@ header .register:hover {
 }
 
 .new-post button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -505,7 +544,7 @@ header .register:hover {
 }
 
 .new-post button:hover {
-    background-color: #0056b3;
+    background-color: var(--highlight-hover-bg-color);
     transform: translateY(-2px);
 }
 
@@ -527,13 +566,13 @@ header .register:hover {
 }
 
 .comment {
-    background-color: #36374a;
+    background-color: var(--medium-bg-color);
     padding: 15px;
     border-radius: 5px;
 }
 
 .comment-author a {
-    color: #ffdd57;
+    color: var(--comment-author-color);
     font-weight: bold;
     text-decoration: none;
 }
@@ -543,7 +582,7 @@ header .register:hover {
 }
 
 .comment-date {
-    color: #c0c0c0;
+    color: var(--info-color);
     font-size: 14px;
     margin-top: 5px;
 }
@@ -559,10 +598,10 @@ header .register:hover {
 }
 
 .post-comment textarea {
-    background-color: #2d2e3c;
+    background-color: var(--secondary-bg-color);
     border: none;
     padding: 10px;
-    color: #fff;
+    color: var(--text-color);
     border-radius: 5px;
     font-size: 16px;
     resize: vertical;
@@ -574,8 +613,8 @@ header .register:hover {
 }
 
 .post-comment button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
     border: none;
     padding: 10px 20px;
     margin-bottom: 50px;
@@ -585,7 +624,7 @@ header .register:hover {
 }
 
 .post-comment button:hover {
-    background-color: #0056b3;
+    background-color: var(--highlight-hover-bg-color);
     transform: translateY(-2px);
 }
 
@@ -639,20 +678,20 @@ header .register:hover {
 .dislike-form button {
     background: none;
     border: none;
-    color: #fff;
+    color: var(--text-color);
     cursor: pointer;
     font-size: 16px;
     transition: color 0.3s ease, transform 0.3s ease;
 }
 
-.like-form button:hover,
-.dislike-form button:hover {
-    color: #007bff;
+.like-form button:hover {
+    color: var(--like-color);
     transform: translateY(-2px);
 }
 
 .dislike-form button:hover {
-    color: #ff6b6b;
+    color: var(--error-color);
+    transform: translateY(-2px);
 }
 
 /* Auth Container */
@@ -660,7 +699,7 @@ header .register:hover {
     max-width: 500px;
     margin: 25px auto;
     padding: 30px;
-    background-color: #292A37;
+    background-color: var(--header-bg-color);
     box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
     border-radius: 10px;
 }
@@ -670,7 +709,7 @@ header .register:hover {
     text-align: center;
     margin-bottom: 25px;
     padding: 10px;
-    background-color: #222231;
+    background-color: var(--light-bg-color);
 }
 
 .auth-form {
@@ -680,7 +719,7 @@ header .register:hover {
 }
 
 .auth-form h1 {
-    color: #fff;
+    color: var(--text-color);
     font-size: 28px;
     text-align: center;
 }
@@ -691,16 +730,16 @@ header .register:hover {
 }
 
 .auth-form .form-group label {
-    color: #c0c0c0;
+    color: var(--info-color);
     margin-top: 25px;
     font-size: 18px;
 }
 
 .auth-form .form-group input {
-    background-color: #36374A;
+    background-color: var(--secondary-bg-color);
     border: none;
     padding: 15px;
-    color: #fff;
+    color: var(--text-color);
     border-radius: 5px;
     font-size: 18px;
 }
@@ -711,8 +750,8 @@ header .register:hover {
 }
 
 .auth-form button {
-    background-color: #007bff;
-    color: #fff;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
     border: none;
     padding: 15px 0;
     border-radius: 5px;
@@ -726,7 +765,7 @@ header .register:hover {
 .auth-form .toggle-button {
     background: none;
     border: none;
-    color: #007bff;
+    color: var(--highlight-bg-color);
     cursor: pointer;
     font-size: 16px;
     text-decoration: underline;
@@ -740,7 +779,7 @@ header .register:hover {
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    color: #c0c0c0;
+    color: var(--info-color);
 }
 
 .password {
@@ -756,13 +795,13 @@ header .register:hover {
 }
 
 .login-button:hover {
-    background-color: #0056b3;
+    background-color: var(--highlight-hover-bg-color);
     transform: translateY(-2px);
 }
 
 .auth-form .error-message {
     margin-top: 20px;
-    color: #ff6b6b;
+    color: var(--error-color);
     text-align: center;
     font-size: 16px;
 }

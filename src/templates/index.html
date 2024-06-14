@@ -14,13 +14,17 @@
         </div>
     
         {{if .Session.LoggedIn}}
+            {{if eq .Session.Rank "Moderator" "Administrator"}}
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {{end}}
+
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
             <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
-    </header>  
+    </header>
     
     <div class="categories-container">
         <div class="categories-tableau">

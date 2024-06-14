@@ -56,7 +56,6 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
@@ -81,12 +80,11 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 		removeLikePost(id, userID)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
@@ -111,15 +109,13 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 		removeDislikePost(id, userID)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
-// Comment
-
+// Comment-
 func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 	postID := r.FormValue("post_id")
 	content := r.FormValue("content")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
@@ -129,13 +125,11 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	newComment(id, content, getUsernameByUUID(getSessionUUID(r)))
 
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, id), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	commentID := r.FormValue("comment_id")
-	postID := r.FormValue("post_id")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
@@ -145,13 +139,11 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	deleteComment(id)
 
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	commentID := r.FormValue("comment_id")
-	postID := r.FormValue("post_id")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
@@ -175,14 +167,11 @@ func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	} else {
 		removeLikeComment(id, userID)
 	}
-
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
 func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 	commentID := r.FormValue("comment_id")
-	postID := r.FormValue("post_id")
-	title := r.FormValue("title")
 
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
@@ -207,5 +196,5 @@ func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 		removeDislikeComment(id, userID)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%s", title, postID), http.StatusSeeOther)
+	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }

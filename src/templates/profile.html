@@ -14,6 +14,10 @@
         </div>
     
         {{if .Session.LoggedIn}}
+            {{if eq .Session.Rank "Moderator" "Administrator"}}
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {{end}}
+
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
@@ -27,7 +31,7 @@
             {{if .Session.LoggedIn}}
                 {{if eq .Session.Username .Data.Username}}
                     <div class="profile-settings-container">
-                        <div class="profile-settings-dropdown">
+                        <div class="profile-settings">
                             <div class="profile-settings"><i class="fas fa-cog"></i> Settings</div>
                             <div class="settings-menu">
                                 <form action="/change-username" method="POST" class="change-username-form">
@@ -47,6 +51,17 @@
                                     <input type="hidden" name="uuid" value="{{.Data.UUID}}">
                                     <button type="submit"><i class="fas fa-check"></i></button>
                                 </form>
+
+                                <form action="/change-picture" method="POST" enctype="multipart/form-data" class="change-picture-form">
+                                    <input type="file" name="picture" accept="image/*" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
+
+                                <form action="/delete-account" method="POST" class="delete-account-form">
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button class="delete" type="submit"><i class="fas fa-trash-alt"></i> Delete account</button>
+                                </form>
                             </div>
                         </div>
                         <div class="profile-uuid">UUID: {{.Data.UUID}}</div>
@@ -56,12 +71,29 @@
         
             <div class="profile-info">
                 <div class="profile-picture">
-                    <img src="/img/{{.Data.Picture}}" alt="Profile picture">
+                    <img src="/img/profile/{{.Data.Picture}}" alt="Profile picture">
                 </div>
                 <div class="profile-username">{{.Data.Username}}</div>
                 <div class="profile-role">Role: {{.Data.Rank}}</div>
                 <div class="profile-joined">Joined: {{.Data.Timestamp}}</div>
             </div>
+
+            {{if eq .Session.Rank "Administrator"}}
+            <div class="admin-menu">
+                <form action="/promote" method="POST" class="promote-form">
+                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                    <button type="submit"><i class="fas fa-arrow-up"></i> Promote</button>
+                </form>
+                <form action="/demote" method="POST" class="demote-form">
+                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                    <button type="submit"><i class="fas fa-arrow-down"></i> Demote</button>
+                </form>
+                <form action="/delete" method="POST" class="delete-form">
+                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                    <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
+                </form>
+            </div>
+        {{end}}
         </div>
             
         <div class="stats">

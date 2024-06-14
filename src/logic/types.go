@@ -13,6 +13,7 @@ type Session struct {
 	Username string
 	ID       int
 	UUID     string
+	Rank     string
 	LoggedIn bool
 }
 

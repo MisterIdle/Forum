@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            {{if eq .Session.Rank "Moderator" "Administrator"}}
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {{end}}
+
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
+        {{else}}
+            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+        {{end}}
+    </header>
+
+    <div class="dashboard-container">
+        <h3 class="dashboard-global"><i class="fas fa-list"></i> Categories</h3>
+        <div class="dashboard-settings">
+            <form action="/create-category" method="POST">
+                <input type="text" name="name" placeholder="Name" required maxlength="100">
+                <input type="text" name="description" placeholder="Description" required maxlength="1000">
+                <input type="text" name="global" placeholder="Global" required maxlength="1000">
+                <button type="submit">Create Category</button>
+            </form>
+        </div>
+
+        <div class="profile-info">
+            {{if .Data}}
+                <h3>Profile Information</h3>
+                <p>{{.Data.Username}}</p>
+                <p>{{.Data.UUID}}</p>
+                <img src="/img/profile/{{.Data.Picture}}" alt="{{.Data.Username}}">
+                <p>{{.Data.Rank}}</p>
+                <p>{{.Data.Timestamp}}</p>
+                <p>{{.Data.TotalPosts}}</p>
+                <p>{{.Data.TotalComments}}</p>
+                <p>{{.Data.TotalLikes}}</p>
+                <p>{{.Data.TotalDislikes}}</p>
+
+                <h3>Posts</h3>
+                <ul>
+                    {{range .Data.Posts}}
+                    <li>{{.Content}}</li>
+                    {{end}}
+                </ul>
+
+                <h3>Comments</h3>
+                <ul>
+                    {{range .Data.Comments}}
+                    <li>{{.Content}}</li>
+                    {{end}}
+                </ul>
+            {{else}}
+                <p>No user found</p>
+            {{end}}
+        </div>
+    </div>
+
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+</body>
+</html>
