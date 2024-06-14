@@ -30,6 +30,29 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	RenderTemplateGlobal(w, r, "templates/categories.html", data)
 }
 
+func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+	description := r.FormValue("description")
+	global := r.FormValue("global")
+
+	if checkCategoryName(name) {
+		http.Error(w, "Category already exists", http.StatusBadRequest)
+		return
+	}
+
+	createCategory(name, description, global)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
+	categoryName := r.FormValue("categories")
+
+	deleteCategory(categoryName)
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
 func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	title := r.FormValue("title")
 	content := r.FormValue("content")
@@ -38,6 +61,11 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(categoryID)
 	if err != nil {
 		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	if checkPostTitle(title) {
+		http.Error(w, "Post title already exists", http.StatusBadRequest)
 		return
 	}
 

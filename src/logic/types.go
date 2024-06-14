@@ -17,6 +17,12 @@ type Session struct {
 	LoggedIn bool
 }
 
+type DashBoard struct {
+	Users      []string
+	Categories []string
+	Profile    Profile
+}
+
 type Profile struct {
 	Username      string
 	UUID          string
@@ -32,7 +38,9 @@ type Profile struct {
 }
 
 type Categories struct {
-	Categories map[string][]Category
+	Globals       map[string][]Category
+	AllCategories []string
+	AllGlobals    []string
 }
 
 type Category struct {

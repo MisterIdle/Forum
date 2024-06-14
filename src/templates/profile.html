@@ -27,6 +27,7 @@
     </header>
 
     <div class="profile-container">
+        <h2><i class="fas fa-user"></i> Profile</h2>
         <div class="profile-header">
             {{if .Session.LoggedIn}}
                 {{if eq .Session.Username .Data.Username}}
@@ -93,7 +94,7 @@
                     <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                 </form>
             </div>
-        {{end}}
+            {{end}}
         </div>
             
         <div class="stats">

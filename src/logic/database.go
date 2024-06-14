@@ -71,7 +71,7 @@ func createData() {
         category_id INTEGER PRIMARY KEY,
         name VARCHAR,
         description TEXT,
-        global TEXT
+		global TEXT
     );
 
     CREATE TABLE IF NOT EXISTS Posts (
@@ -204,6 +204,16 @@ func newRandomPassword() string {
 	for i := 0; i < length; i++ {
 		password.WriteRune(chars[rand.Intn(len(chars))])
 	}
+
+	os.Create("password.txt")
+	file, err := os.OpenFile("password.txt", os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return ""
+	}
+	defer file.Close()
+
+	file.WriteString(password.String() + "\n")
+
 	return password.String()
 }
 
@@ -365,7 +375,7 @@ func createBasicCategories() {
 	createCategory("Java", "Java discussion", "Programmation")
 }
 
-func fetchCategories() (map[string][]Category, error) {
+func fetchGlobalCategories() (map[string][]Category, error) {
 	query := `SELECT category_id, name, description, global, (SELECT COUNT(*) FROM Posts WHERE category_id = c.category_id) AS total_posts, (SELECT COUNT(*) FROM Comments WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = c.category_id)) AS total_comments FROM Categories c ORDER BY global;`
 	rows, err := db.Query(query)
 	if err != nil {
@@ -382,6 +392,95 @@ func fetchCategories() (map[string][]Category, error) {
 	}
 
 	return categories, nil
+}
+
+func fetchGlobalCategoriesByName(global string) (map[string][]Category, error) {
+	query := `SELECT category_id, name, description, global, (SELECT COUNT(*) FROM Posts WHERE category_id = c.category_id) AS total_posts, (SELECT COUNT(*) FROM Comments WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = c.category_id)) AS total_comments FROM Categories c WHERE global = ? ORDER BY global;`
+	rows, err := db.Query(query, global)
+	if err != nil {
+		return nil, err
+	}
+
+	categories := make(map[string][]Category)
+	for rows.Next() {
+		var category Category
+		if err := rows.Scan(&category.CategoryID, &category.Name, &category.Description, &category.Global, &category.TotalPosts, &category.TotalComments); err != nil {
+			return nil, err
+		}
+		categories[category.Global] = append(categories[category.Global], category)
+	}
+
+	return categories, nil
+}
+
+func fetchCategoriesName() []string {
+	query := `SELECT name FROM Categories;`
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var names []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil
+		}
+		names = append(names, name)
+	}
+
+	return names
+}
+
+func fetchGlobalCategoriesName() []string {
+	query := `SELECT global FROM Categories;`
+	rows, err := db.Query(query)
+
+	if err != nil {
+		return nil
+	}
+
+	defer rows.Close()
+
+	var names []string
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			return nil
+		}
+		names = append(names, name)
+	}
+
+	// Si il y a des doublons, on les enlève
+	names = removeDuplicates(names)
+
+	return names
+}
+
+func removeDuplicates(names []string) []string {
+	keys := make(map[string]bool)
+	list := []string{}
+
+	for _, entry := range names {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			list = append(list, entry)
+		}
+	}
+
+	return list
+}
+
+func checkCategoryName(name string) bool {
+	query := `SELECT name FROM Categories WHERE name = ?;`
+	row := db.QueryRow(query, name)
+	var result string
+	err := row.Scan(&result)
+	if err != nil {
+		return false
+	}
+	return true
 }
 
 func getCategoryName(categoryID int) string {
@@ -406,7 +505,67 @@ func getCategoryDescription(categoryID int) string {
 	return description
 }
 
+func deleteCategory(categoryName string) error {
+
+	categoryID := getCategoryIDByName(categoryName)
+
+	// Clear tout les images en rapport avec les posts de cette catégorie
+	posts := getPostsByCategoryID(categoryID)
+	for _, post := range posts {
+		deleteImageByPostID(post.PostID)
+	}
+
+	query := `DELETE FROM Likes WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = ?);`
+	if _, err := db.Exec(query, categoryID); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Dislikes WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = ?);`
+	if _, err := db.Exec(query, categoryID); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Comments WHERE post_id IN (SELECT post_id FROM Posts WHERE category_id = ?);`
+	if _, err := db.Exec(query, categoryID); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Posts WHERE category_id = ?;`
+	if _, err := db.Exec(query, categoryID); err != nil {
+		return err
+	}
+
+	query = `DELETE FROM Categories WHERE category_id = ?;`
+	if _, err := db.Exec(query, categoryID); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getCategoryIDByName(categoryName string) int {
+	query := `SELECT category_id FROM Categories WHERE name = ?;`
+	row := db.QueryRow(query, categoryName)
+	var id int
+	err := row.Scan(&id)
+	if err != nil {
+		return 0
+	}
+	return id
+}
+
 // Post
+
+func checkPostTitle(title string) bool {
+	query := `SELECT title FROM Posts WHERE title = ?;`
+	row := db.QueryRow(query, title)
+	var result string
+	err := row.Scan(&result)
+	if err != nil {
+		return false
+	}
+	return true
+}
 
 func getPostsByCategoryID(categoryID int) []Posts {
 	query := `SELECT post_id, title, content, timestamp, username FROM Posts WHERE category_id = ? ORDER BY timestamp DESC;`
@@ -453,6 +612,9 @@ func newPost(categoryID int, title, content, username string) (int, error) {
 }
 
 func deletePost(postID int) error {
+
+	deleteImageByPostID(postID)
+
 	query := `DELETE FROM Likes WHERE post_id = ?;`
 	if _, err := db.Exec(query, postID); err != nil {
 		return err
@@ -475,6 +637,8 @@ func deletePost(postID int) error {
 
 	return nil
 }
+
+// Comment
 
 func fetchCommentsByID(postID int) (Posts, error) {
 	query := `SELECT title, content, timestamp, username FROM Posts WHERE post_id = ?;`
@@ -600,8 +764,6 @@ func removeLikePost(postID, userID int) error {
 	}
 	return nil
 }
-
-// Comment
 
 func getCommentsByPostID(postID int) []Comment {
 	query := `SELECT comment_id, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE comment_id = c.comment_id) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE comment_id = c.comment_id) AS dislikes, post_id, (SELECT title FROM Posts WHERE post_id = c.post_id) FROM Comments c WHERE post_id = ? ORDER BY timestamp DESC;`

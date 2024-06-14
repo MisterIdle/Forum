@@ -30,8 +30,12 @@ func HandleAll() {
 	http.HandleFunc("/register", RegisterHandler)
 	http.HandleFunc("/login", LoginHandler)
 
+	http.HandleFunc("/create-category", CreateCategoryHandler)
+	http.HandleFunc("/delete-category", DeleteCategoryHandler)
+
 	http.HandleFunc("/create-post", CreatePostHandler)
 	http.HandleFunc("/delete-post", DeletePostHandler)
+
 	http.HandleFunc("/create-comment", CreateCommentHandler)
 	http.HandleFunc("/delete-comment", DeleteCommentHandler)
 
@@ -55,14 +59,28 @@ func HandleAll() {
 }
 
 func IndexHandler(w http.ResponseWriter, r *http.Request) {
-	categories, err := fetchCategories()
-	if err != nil {
-		http.Error(w, "Error retrieving categories", http.StatusInternalServerError)
-		return
+	global := r.URL.Query().Get("global")
+	var globals map[string][]Category
+	var err error
+
+	if global == "" || global == "all" {
+		globals, err = fetchGlobalCategories()
+		if err != nil {
+			http.Error(w, "Error retrieving global categories", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		globals, err = fetchGlobalCategoriesByName(global)
+		if err != nil {
+			http.Error(w, "Error retrieving global categories", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	data := Categories{
-		Categories: categories,
+		Globals:       globals,
+		AllCategories: fetchCategoriesName(),
+		AllGlobals:    fetchGlobalCategoriesName(),
 	}
 
 	RenderTemplateGlobal(w, r, "templates/index.html", data)

@@ -34,8 +34,21 @@
                 <div class="category-stats">Posts</div>
             </div>
         </div>
+
+        <div class="filter-container">
+            <div class="filter">
+                <label for="sort">Sort by:</label>
+                <select id="sort" name="sort" onchange="location.href = '/?global=' + this.value;">
+                    <option value="">Choose a filter</option>
+                    <option value="all">All</option>
+                    {{range .Data.AllGlobals}}
+                    <option value="{{.}}">{{.}}</option>
+                    {{end}}
+                </select>
+            </div>
+        </div>
     
-        {{range $global, $categories := .Data.Categories}}
+        {{range $global, $categories := .Data.Globals}}
             <h3 class="category-global">{{$global}}</h3>
             <div class="category-list">
                 {{range $categories}}

@@ -110,6 +110,7 @@ func createSession(w http.ResponseWriter, username string) {
 	sessions[sessionToken] = Session{
 		LoggedIn: true,
 		Username: username,
+		Rank:     getRankByUUID(sessionToken),
 	}
 
 	http.SetCookie(w, &http.Cookie{
