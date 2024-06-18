@@ -1,30 +1,34 @@
 package logic
 
 import (
-	"fmt"
-	"io"
 	"net/http"
-	"os"
 	"strconv"
 )
 
-const MaxImageSize = 20 * 1024 * 1024
-
-func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Query().Get("id")
-
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(w, "Invalid category ID", http.StatusBadRequest)
-		return
-	}
-
-	data := Category{
+func getCategoryData(id int) (Category, error) {
+	category := Category{
 		CategoryID:  id,
 		Name:        getCategoryName(id),
 		Description: getCategoryDescription(id),
 		TotalPosts:  getPostTotalsByCategoryID(id),
 		Posts:       getPostsByCategoryID(id),
+	}
+	return category, nil
+}
+
+func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	idStr := r.URL.Query().Get("id")
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil || id <= 0 {
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		return
+	}
+
+	data, err := getCategoryData(id)
+	if err != nil {
+		http.Error(w, "Error retrieving category data", http.StatusInternalServerError)
+		return
 	}
 
 	RenderTemplateGlobal(w, r, "templates/categories.html", data)
@@ -36,11 +40,19 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	global := r.FormValue("global")
 
 	if checkCategoryName(name) {
-		http.Error(w, "Category already exists", http.StatusBadRequest)
+		idStr := r.URL.Query().Get("id")
+		id, _ := strconv.Atoi(idStr)
+
+		data, _ := getCategoryData(id)
+		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Category already exists"}, data)
 		return
 	}
 
-	createCategory(name, description, global)
+	err := createCategory(name, description, global)
+	if err != nil {
+		http.Error(w, "Error creating category", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
@@ -48,75 +60,11 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	categoryName := r.FormValue("categories")
 
-	deleteCategory(categoryName)
+	err := deleteCategory(categoryName)
+	if err != nil {
+		data, _ := getCategoryData(getCategoryIDByName(categoryName))
+		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error deleting category"}, data)
+	}
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-}
-
-func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	content := r.FormValue("content")
-	categoryID := r.FormValue("category_id")
-
-	id, err := strconv.Atoi(categoryID)
-	if err != nil {
-		http.Error(w, "Invalid category ID", http.StatusBadRequest)
-		return
-	}
-
-	if checkPostTitle(title) {
-		http.Error(w, "Post title already exists", http.StatusBadRequest)
-		return
-	}
-
-	postID, err := newPost(id, title, content, getUsernameByUUID(getSessionUUID(r)))
-	if err != nil {
-		http.Error(w, "Error creating post", http.StatusInternalServerError)
-		return
-	}
-
-	r.ParseMultipartForm(10 << 20)
-
-	files := r.MultipartForm.File["image"]
-
-	for i, fileHandler := range files {
-		file, err := fileHandler.Open()
-		if err != nil {
-			http.Error(w, "Error uploading file", http.StatusInternalServerError)
-			return
-		}
-		defer file.Close()
-
-		fileSize := fileHandler.Size
-		if fileSize > MaxImageSize {
-			http.Error(w, "Image is too large. Maximum allowed size is 20 MB.", http.StatusBadRequest)
-			return
-		}
-
-		if !isValidType(fileHandler.Header.Get("Content-Type")) {
-			http.Error(w, "Invalid file type", http.StatusBadRequest)
-			return
-		}
-
-		dst, _ := os.Create(fmt.Sprintf("./img/upload/%d_%s", postID, files[i].Filename))
-		defer dst.Close()
-
-		io.Copy(dst, file)
-
-		err = uploadImage(postID, fmt.Sprintf("%d_%s", postID, files[i].Filename))
-		if err != nil {
-			http.Error(w, "Error uploading image", http.StatusInternalServerError)
-			return
-		}
-	}
-
-	http.Redirect(w, r, fmt.Sprintf("/categories/post?name=%s&id=%d", title, postID), http.StatusSeeOther)
-}
-
-func isValidType(fileType string) bool {
-	switch fileType {
-	case "image/png", "image/jpg", "image/jpeg", "image/gif", "image/svg", "image/webp":
-		return true
-	}
-	return false
 }

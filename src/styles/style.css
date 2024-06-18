@@ -18,6 +18,8 @@
     --link-color: #007bff;
     --link-hover-color: #0056b3;
     --comment-author-color: #ffdd57;
+    --admin-button-color: #ff7300;
+    --admin-button-hover-color: #ff8c00;
 }
 
 /* Reset CSS */
@@ -270,7 +272,7 @@ header .register:hover {
 }
 
 .admin-menu button {
-    background-color: var(--highlight-bg-color);
+    background-color: var(--admin-button-color);
     color: var(--text-color);
     border: none;
     padding: 10px 20px;
@@ -280,7 +282,7 @@ header .register:hover {
 }
 
 .admin-menu button:hover {
-    background-color: var(--highlight-hover-bg-color);
+    background-color: var(--admin-button-hover-color);
     transform: translateY(-2px);
 }
 
@@ -586,6 +588,74 @@ header .register:hover {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+/* CSS for delete forms positioned to the right */
+.delete-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.delete-form button {
+    background-color: var(--error-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.delete-form button:hover {
+    background-color: var(--error-hover-color);
+    transform: translateY(-2px);
+}
+
+.report-form {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.report-form button {
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.report-form button:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
+.comment-header {
+    position: relative;
+}
+
+.delete-form-admin {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.delete-form-admin button {
+    background-color: var(--admin-button-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.delete-form-admin button:hover {
+    background-color: var(--admin-button-hover-color);
+    transform: translateY(-2px);
 }
 
 /* Comments */

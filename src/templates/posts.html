@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post > {{.Data.Title}}</title>
-
     <link rel="stylesheet" href="/styles/style.css">
 </head>
 <body>
@@ -15,9 +14,8 @@
     
         {{if .Session.LoggedIn}}
             {{if eq .Session.Rank "Moderator" "Administrator"}}
-            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+                <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
-
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
@@ -50,24 +48,37 @@
 
             <div class="likes-container">
                 <form action="/like-post" method="POST" class="like-form">
-                    <h2>{{.Data.Likes}}</h2>
+                    <h2>{{.Data.LikesPost}}</h2>
                     <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                     <button type="submit"><i class="fas fa-heart"></i></button>
                 </form>
                 <form action="/dislike-post" method="POST" class="dislike-form">
-                    <h2>{{.Data.Dislikes}}</h2>
+                    <h2>{{.Data.DislikesPost}}</h2>
                     <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                     <button type="submit"><i class="fas fa-heart-broken"></i></button>
                 </form>
-
-                {{if .Session.LoggedIn}}
-                    {{if eq .Session.Username .Data.Username}}
-                        <form action="/delete-post" method="POST" class="delete-form">
-                            <button type="submit">Delete</button>
-                        </form>
-                    {{end}}
-                {{end}}
             </div>
+
+            {{if .Session.LoggedIn}}
+                {{if eq .Session.Username .Data.Username}}
+                    <form action="/delete-post" method="POST" class="delete-form">
+                        <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                        <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
+                    </form>
+                {{end}}
+
+                <form action="/report-post" method="POST" class="report-form">
+                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                    <button type="submit"><i class="fas fa-flag"></i> Report</button>
+                </form>
+
+                {{if eq .Session.Rank "Administrator"}}
+                    <form action="/delete-post" method="POST" class="delete-form-admin">
+                        <input type="hidden" name="post_id" value="{{.Data.PostID}}">
+                        <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
+                    </form>
+                {{end}}
+            {{end}}
         </div>
 
         <div class="comments-container">
@@ -90,6 +101,40 @@
                             <div class="comment-author"><a href="/profile?name={{.Username}}">{{.Username}}</a></div>
                             <div class="comment-content">{{.Content}}</div>
                             <div class="comment-date">{{.Timestamp}}</div>
+                        </div>
+
+                        <div class="likes-container">
+                            <form action="/like-comment" method="POST" class="like-form">
+                                <h2>{{.LikesComment}}</h2>
+                                <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                                <button type="submit"><i class="fas fa-heart"></i></button>
+                            </form>
+                            <form action="/dislike-comment" method="POST" class="dislike-form">
+                                <h2>{{.DislikesComment}}</h2>
+                                <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                                <button type="submit"><i class="fas fa-heart-broken"></i></button>
+                            </form>
+
+                            {{if .Sessions.LoggedIn}}
+                                {{if eq .Sessions.Username .Username}}
+                                    <form action="/delete-comment" method="POST" class="delete-form">
+                                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                                        <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
+                                    </form>
+                                {{end}}
+
+                                <form action="/report-comment" method="POST" class="report-form">
+                                    <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                                    <button type="submit"><i class="fas fa-flag"></i> Report</button>
+                                </form>
+
+                                {{if eq .Sessions.Rank "Administrator"}}
+                                    <form action="/delete-comment" method="POST" class="delete-form-admin">
+                                        <input type="hidden" name="comment_id" value="{{.CommentID}}">
+                                        <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
+                                    </form>
+                                {{end}}
+                            {{end}}
                         </div>
                     </div>
                 {{end}}

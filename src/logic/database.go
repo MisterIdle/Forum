@@ -15,6 +15,7 @@ import (
 
 var db *sql.DB
 
+// Initialization functions
 func InitData() {
 	var err error
 	db, err = sql.Open("sqlite3", "./database.db")
@@ -126,6 +127,7 @@ func resetAll() {
 	resetRanks()
 }
 
+// Reset functions
 func resetUsers() {
 	query := `DELETE FROM Users;`
 	db.Exec(query)
@@ -165,31 +167,24 @@ func resetImages() {
 	query := `DELETE FROM Images;`
 	db.Exec(query)
 
-	// Reset toutes les images dans upload
-	files, err := os.ReadDir("./img/upload/")
+	resetImageFolder("./img/upload/")
+	resetImageFolder("./img/profile/")
+}
+
+func resetImageFolder(folder string) {
+	files, err := os.ReadDir(folder)
 	if err != nil {
 		return
 	}
 
 	for _, file := range files {
 		if file.Name() != "Default.png" {
-			os.Remove("./img/upload/" + file.Name())
-		}
-	}
-
-	// Reset toutes les images dans profile
-	files, err = os.ReadDir("./img/profile/")
-	if err != nil {
-		return
-	}
-
-	for _, file := range files {
-		if file.Name() != "Default.png" {
-			os.Remove("./img/profile/" + file.Name())
+			os.Remove(folder + file.Name())
 		}
 	}
 }
 
+// User functions
 func createAdminUser() {
 	password := newRandomPassword()
 	newUser("Admin", "Admin", hashedPassword(password), "Default.png", 3)
@@ -354,8 +349,7 @@ func changeProfilePicture(picture, uuid string) error {
 	return nil
 }
 
-// Category
-
+// Category functions
 func createCategory(name, description, global string) error {
 	query := `INSERT INTO Categories (name, description, global) VALUES (?, ?, ?);`
 	_, err := db.Exec(query, name, description, global)
@@ -452,7 +446,6 @@ func fetchGlobalCategoriesName() []string {
 		names = append(names, name)
 	}
 
-	// Si il y a des doublons, on les enlève
 	names = removeDuplicates(names)
 
 	return names
@@ -506,10 +499,8 @@ func getCategoryDescription(categoryID int) string {
 }
 
 func deleteCategory(categoryName string) error {
-
 	categoryID := getCategoryIDByName(categoryName)
 
-	// Clear tout les images en rapport avec les posts de cette catégorie
 	posts := getPostsByCategoryID(categoryID)
 	for _, post := range posts {
 		deleteImageByPostID(post.PostID)
@@ -554,7 +545,18 @@ func getCategoryIDByName(categoryName string) int {
 	return id
 }
 
-// Post
+// Post functions
+func fetchPostByID(postID int) (Posts, error) {
+	query := `SELECT title, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE post_id = ?) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE post_id = ?) AS dislikes FROM Posts WHERE post_id = ?;`
+	row := db.QueryRow(query, postID, postID, postID)
+	var post Posts
+	err := row.Scan(&post.Title, &post.Content, &post.Timestamp, &post.Username, &post.LikesPost, &post.DislikesPost)
+	if err != nil {
+		return Posts{}, err
+	}
+
+	return post, nil
+}
 
 func checkPostTitle(title string) bool {
 	query := `SELECT title FROM Posts WHERE title = ?;`
@@ -612,7 +614,6 @@ func newPost(categoryID int, title, content, username string) (int, error) {
 }
 
 func deletePost(postID int) error {
-
 	deleteImageByPostID(postID)
 
 	query := `DELETE FROM Likes WHERE post_id = ?;`
@@ -636,20 +637,6 @@ func deletePost(postID int) error {
 	}
 
 	return nil
-}
-
-// Comment
-
-func fetchCommentsByID(postID int) (Posts, error) {
-	query := `SELECT title, content, timestamp, username FROM Posts WHERE post_id = ?;`
-	row := db.QueryRow(query, postID)
-	var post Posts
-	err := row.Scan(&post.Title, &post.Content, &post.Timestamp, &post.Username)
-	if err != nil {
-		return Posts{}, err
-	}
-
-	return post, nil
 }
 
 func getLikesByPostID(postID int) int {
@@ -765,23 +752,25 @@ func removeLikePost(postID, userID int) error {
 	return nil
 }
 
-func getCommentsByPostID(postID int) []Comment {
-	query := `SELECT comment_id, content, timestamp, username, (SELECT COUNT(*) FROM Likes WHERE comment_id = c.comment_id) AS likes, (SELECT COUNT(*) FROM Dislikes WHERE comment_id = c.comment_id) AS dislikes, post_id, (SELECT title FROM Posts WHERE post_id = c.post_id) FROM Comments c WHERE post_id = ? ORDER BY timestamp DESC;`
+// Comment functions
+func fetchCommentsByPostID(postID int) ([]Comments, error) {
+	query := `SELECT comment_id, content, timestamp, username FROM Comments WHERE post_id = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, postID)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	defer rows.Close()
 
-	var comments []Comment
+	var comments []Comments
 	for rows.Next() {
-		var comment Comment
-		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Username, &comment.Likes, &comment.Dislikes, &comment.PostID, &comment.Title); err != nil {
-			return nil
+		var comment Comments
+		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Username); err != nil {
+			return nil, err
 		}
 		comments = append(comments, comment)
 	}
-	return comments
+
+	return comments, nil
 }
 
 func newComment(postID int, content, username string) error {
@@ -809,6 +798,39 @@ func deleteComment(commentID int) error {
 		return err
 	}
 	return nil
+}
+
+func getUsernameByCommentID(commentID int) string {
+	query := `SELECT username FROM Comments WHERE comment_id = ?;`
+	row := db.QueryRow(query, commentID)
+	var username string
+	err := row.Scan(&username)
+	if err != nil {
+		return ""
+	}
+	return username
+}
+
+func getLikesByCommentID(commentID int) int {
+	query := `SELECT COUNT(*) FROM Likes WHERE comment_id = ?;`
+	row := db.QueryRow(query, commentID)
+	var likes int
+	err := row.Scan(&likes)
+	if err != nil {
+		return 0
+	}
+	return likes
+}
+
+func getDislikesByCommentID(commentID int) int {
+	query := `SELECT COUNT(*) FROM Dislikes WHERE comment_id = ?;`
+	row := db.QueryRow(query, commentID)
+	var dislikes int
+	err := row.Scan(&dislikes)
+	if err != nil {
+		return 0
+	}
+	return dislikes
 }
 
 func hasUserLikedComment(commentID, userID int) bool {
@@ -869,8 +891,7 @@ func removeLikeComment(commentID, userID int) error {
 	return nil
 }
 
-// Image
-
+// Image functions
 func uploadImage(postID int, imageName string) error {
 	query := `INSERT INTO Images (post_id, image_name) VALUES (?, ?);`
 	_, err := db.Exec(query, postID, imageName)
@@ -905,23 +926,25 @@ func deleteImageByPostID(postID int) error {
 		return err
 	}
 
-	// Reset toutes les images dans upload qui comment par postID
-	files, err := os.ReadDir("./img/upload/")
-	if err != nil {
-		return err
-	}
-
-	for _, file := range files {
-		// Check si le nom du fichier commence par postID
-		if file.Name()[:len(fmt.Sprint(postID))] == fmt.Sprint(postID) {
-			os.Remove("./img/upload/" + file.Name())
-		}
-	}
+	resetPostImages(postID)
 
 	return nil
 }
 
-// Profile
+func resetPostImages(postID int) {
+	files, err := os.ReadDir("./img/upload/")
+	if err != nil {
+		return
+	}
+
+	for _, file := range files {
+		if file.Name()[:len(fmt.Sprint(postID))] == fmt.Sprint(postID) {
+			os.Remove("./img/upload/" + file.Name())
+		}
+	}
+}
+
+// Profile functions
 func fetchAllUsernames() []string {
 	query := `SELECT username FROM Users;`
 	rows, err := db.Query(query)
@@ -971,7 +994,7 @@ func fetchProfilePosts(username string) []Posts {
 	return posts
 }
 
-func fetchProfileComments(username string) []Comment {
+func fetchProfileComments(username string) []Comments {
 	query := `SELECT comment_id, content, timestamp, (SELECT title FROM Posts WHERE post_id = c.post_id), post_id FROM Comments c WHERE username = ? ORDER BY timestamp DESC;`
 	rows, err := db.Query(query, username)
 	if err != nil {
@@ -979,9 +1002,9 @@ func fetchProfileComments(username string) []Comment {
 	}
 	defer rows.Close()
 
-	var comments []Comment
+	var comments []Comments
 	for rows.Next() {
-		var comment Comment
+		var comment Comments
 		if err := rows.Scan(&comment.CommentID, &comment.Content, &comment.Timestamp, &comment.Title, &comment.PostID); err != nil {
 			return nil
 		}
@@ -1027,7 +1050,6 @@ func deleteProfile(uuid string) error {
 		return err
 	}
 
-	// Delete son image de profile
 	picture := getProfilePictureByUUID(uuid)
 	if picture != "Default.png" {
 		os.Remove("./img/profile/" + picture)
@@ -1036,7 +1058,7 @@ func deleteProfile(uuid string) error {
 	return nil
 }
 
-// Rank
+// Rank functions
 func createRank(name string) error {
 	query := `INSERT INTO Ranks (rank_name) VALUES (?);`
 	_, err := db.Exec(query, name)

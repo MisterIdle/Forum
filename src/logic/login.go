@@ -19,30 +19,25 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirmPassword")
 
-	data := ErrorMessage{Error: ""}
-
 	if isUserLoggedIn(r) {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	if password != confirmPassword {
-		data.Error = "Passwords do not match"
-		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Passwords do not match"}, "")
 		return
 	}
 
 	hashedPassword := hashedPassword(password)
 
 	if checkUserEmail(email) {
-		data.Error = "Email already exists"
-		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Email already exists"}, "")
 		return
 	}
 
 	if checkUserUsername(username) {
-		data.Error = "Username already exists"
-		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Username already exists"}, "")
 		return
 	}
 
@@ -134,6 +129,20 @@ func forceLogout(w http.ResponseWriter, r *http.Request) {
 		Value:   "",
 		Expires: time.Now(),
 	})
+}
+
+func getActiveSession(r *http.Request) Session {
+	cookie, err := r.Cookie("session_token")
+	if err != nil {
+		return Session{}
+	}
+
+	session, ok := sessions[cookie.Value]
+	if !ok {
+		return Session{}
+	}
+
+	return session
 }
 
 func getSessionUUID(r *http.Request) string {

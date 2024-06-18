@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const MaxImageSize = 20 * 1024 * 1024
+
 func LaunchApp() {
 	HandleAll()
 

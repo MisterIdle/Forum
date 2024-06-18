@@ -81,15 +81,15 @@
                     </div>
                     {{if eq .Session.Rank "Administrator"}}
                     <div class="admin-menu">
-                        <form action="/promote" method="POST" class="promote-form">
+                        <form action="/promote" method="POST" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-arrow-up"></i> Promote</button>
                         </form>
-                        <form action="/demote" method="POST" class="demote-form">
+                        <form action="/demote" method="POST" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-arrow-down"></i> Demote</button>
                         </form>
-                        <form action="/delete" method="POST" class="delete-form">
+                        <form action="/delete" method="POST" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                         </form>

@@ -20,6 +20,9 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 			LoggedIn: isUserLoggedIn(r),
 			Rank:     getRankByUUID(getSessionUUID(r)),
 		},
+		ErrorMessage: ErrorMessage{
+			Error: "",
+		},
 	}
 
 	err = tmpt.Execute(w, dataWithSession)
@@ -27,6 +30,24 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 		fmt.Print("Error executing template: ", err)
 		return
 	}
+}
+
+func RenderTemplateError(w http.ResponseWriter, r *http.Request, templateName string, errMsg ErrorMessage, data interface{}) {
+	tmpl, err := template.ParseFiles(templateName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	combinedData := struct {
+		Error ErrorMessage
+		Data  interface{}
+	}{
+		Error: errMsg,
+		Data:  data,
+	}
+
+	tmpl.Execute(w, combinedData)
 }
 
 func RenderTemplateWithoutData(w http.ResponseWriter, tmpl string) {

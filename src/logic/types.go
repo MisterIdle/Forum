@@ -5,8 +5,9 @@ type ErrorMessage struct {
 }
 
 type Data struct {
-	Data    interface{}
-	Session Session
+	Data         interface{}
+	Session      Session
+	ErrorMessage ErrorMessage
 }
 
 type Session struct {
@@ -34,7 +35,7 @@ type Profile struct {
 	TotalLikes    int
 	TotalDislikes int
 	Posts         []Posts
-	Comments      []Comment
+	Comments      []Comments
 }
 
 type Categories struct {
@@ -54,27 +55,27 @@ type Category struct {
 }
 
 type Posts struct {
+	CategoryName string
+	CategoryID   int
 	PostID       int
 	Title        string
 	Content      string
 	Username     string
 	Timestamp    string
-	Likes        int
-	Dislikes     int
+	LikesPost    int
+	DislikesPost int
 	Images       []string
-	Comments     []Comment
-	CategoryName string
-	CategoryID   int
+	Comments     []Comments
 }
 
-type Comment struct {
-	CommentID int
-	PostID    int
-	Title     string
-	Content   string
-	Timestamp string
-	Username  string
-	Likes     int
-	Dislikes  int
-	Session   Session
+type Comments struct {
+	CommentID       int
+	PostID          int
+	Title           string
+	Content         string
+	Timestamp       string
+	Username        string
+	LikesComment    int
+	DislikesComment int
+	Sessions        Session
 }
