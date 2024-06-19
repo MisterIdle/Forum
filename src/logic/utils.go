@@ -2,6 +2,8 @@ package logic
 
 import (
 	"net/http"
+	"regexp"
+	"strings"
 )
 
 // Session function
@@ -38,12 +40,34 @@ func logginPage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
-func getNoSessionData() Data {
+func getNoSessionData(hasError bool, message string) Data {
 	data := Data{}
 	data.Data = nil
-	data.Session = Session{}
-	data.Session.HasError = Error{}.HasError
-	data.Session.Message = Error{}.Message
+	data.Session = Session{
+		HasError: hasError,
+		Message:  message,
+	}
 
 	return data
+}
+
+var allowedTags = map[string]bool{
+	"b": true, "i": true, "u": true, "s": true, "ol": true, "li": true, "ul": true,
+}
+
+func containsHTMLTags(s string) bool {
+	re := regexp.MustCompile(`<[^>]+>`)
+	matches := re.FindAllString(s, -1)
+	for _, tag := range matches {
+		tagName := strings.Trim(tag, "</>")
+		if _, allowed := allowedTags[tagName]; !allowed {
+			return true
+		}
+	}
+	return false
+}
+
+func containsAllHtmlTags(s string) bool {
+	re := regexp.MustCompile(`<[^>]+>`)
+	return re.MatchString(s)
 }

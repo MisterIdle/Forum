@@ -10,7 +10,7 @@
 <body>
     <header class="header">
         <div class="logo">
-            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
         </div>
     
         {{if .Session.LoggedIn}}
@@ -147,14 +147,7 @@
                 window.location.href = "/profile?name={{.Session.Username}}";
             </script>
         {{end}}
-
     </div>
-
-    <footer class="footer">
-        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
-        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
-        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
-    </footer>
 
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>

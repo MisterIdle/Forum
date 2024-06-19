@@ -60,6 +60,7 @@ func HandleAll() {
 	http.HandleFunc("/dislike-comment", DislikeCommentHandler)
 
 	http.HandleFunc("/reload", ReloadHandler)
+	http.HandleFunc("/reload-auth", AuthReloadHandler)
 
 	http.HandleFunc("/logout", LogoutHandler)
 }
@@ -97,9 +98,14 @@ func ErrorHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func BackHandler(w http.ResponseWriter, r *http.Request) {
-	mainPage(w, r)
+	setHasError(r, false, "")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
 func ReloadHandler(w http.ResponseWriter, r *http.Request) {
 	reloadPageWithoutError(w, r)
+}
+
+func AuthReloadHandler(w http.ResponseWriter, r *http.Request) {
+	RenderTemplateWithoutData(w, "templates/auth.html")
 }

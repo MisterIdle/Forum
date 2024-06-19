@@ -1311,26 +1311,3 @@ header .register:hover {
     }
 }
 
-/* Footer Styles */
-
-footer {
-    background-color: var(--header-bg-color);
-    color: var(--text-color);
-    padding: 15px 50px;
-    display: flex;
-    align-items: center;
-    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
-    margin-top: 50px;
-}
-
-footer a {
-    margin-left: 25px;
-    color: var(--text-color);
-    text-decoration: none;
-    font-size: 25px;
-}
-
-footer a:hover {
-    color: var(--hover-color);
-}
-

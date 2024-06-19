@@ -10,7 +10,7 @@
 <body>
     <header class="header">
         <div class="logo">
-            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
         </div>
     
         {{if .Session.LoggedIn}}
@@ -49,7 +49,16 @@
                 <form action="/create-post" method="POST" enctype="multipart/form-data">
                     <input type="hidden" name="category_id" value="{{.Data.CategoryID}}">
                     <input type="text" name="title" placeholder="Title" required maxlength="100">
-                    <textarea name="content" placeholder="Content" required maxlength="1000"></textarea>
+                    <textarea id="content" name="content" placeholder="Content" required maxlength="1000"></textarea>
+
+                    <div class="text-styling-buttons">
+                        <button type="button" onclick="formatText('bold')"><b>B</b></button>
+                        <button type="button" onclick="formatText('italic')"><i>I</i></button>
+                        <button type="button" onclick="formatText('underline')"><u>U</u></button>
+                        <button type="button" onclick="formatText('strikeThrough')"><s>S</s></button>
+                        <button type="button" onclick="formatText('insertOrderedList')"><i class="fas fa-list-ol"></i></button>
+                    </div>
+
                     <input type="file" name="image" multiple="multiple" accept="image/*">
                     <button type="submit">Create Post</button>
                 </form>
@@ -73,12 +82,30 @@
         </div>
     </div>
 
-    
-    <footer class="footer">
-        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
-        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
-        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
-    </footer>
+    <script>
+        function formatText(command) {
+            var textarea = document.getElementById('content');
+            var start = textarea.selectionStart;
+            var end = textarea.selectionEnd;
+            var selectedText = textarea.value.substring(start, end);
+            var replacement = '';
+
+            if (command === 'bold') {
+                replacement = '<b>' + selectedText + '</b>';
+            } else if (command === 'italic') {
+                replacement = '<i>' + selectedText + '</i>';
+            } else if (command === 'underline') {
+                replacement = '<u>' + selectedText + '</u>';
+            } else if (command === 'strikeThrough') {
+                replacement = '<s>' + selectedText + '</s>';
+            } else if (command === 'insertOrderedList') {
+                replacement = '<ol>\n<li>' + selectedText.split('\n').join('</li>\n<li>') + '</li>\n</ol>';
+            }
+
+            textarea.value = textarea.value.substring(0, start) + replacement + textarea.value.substring(end);
+            textarea.setSelectionRange(start, start + replacement.length);
+        }
+    </script>
 
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>

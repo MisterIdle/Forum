@@ -15,7 +15,6 @@ import (
 
 var db *sql.DB
 
-// Initialization functions
 func InitData() {
 	var err error
 	db, err = sql.Open("sqlite3", "./database.db")

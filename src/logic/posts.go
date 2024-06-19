@@ -43,7 +43,7 @@ func PostsHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
@@ -66,12 +66,22 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(categoryID)
 	if err != nil {
-		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	if checkPostTitle(title) {
 		reloadPageWithError(w, r, "Post title already exists")
+		return
+	}
+
+	if containsAllHtmlTags(title) {
+		reloadPageWithError(w, r, "HTML tags are not allowed")
+		return
+	}
+
+	if containsHTMLTags(content) {
+		reloadPageWithError(w, r, "Limited HTML tags are allowed")
 		return
 	}
 
@@ -133,7 +143,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
@@ -147,12 +157,12 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	if !isUserLoggedIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		logginPage(w, r)
 		return
 	}
 
@@ -177,12 +187,12 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	if !isUserLoggedIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		logginPage(w, r)
 		return
 	}
 

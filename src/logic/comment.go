@@ -42,6 +42,11 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if containsAllHtmlTags(content) {
+		reloadPageWithError(w, r, "HTML tags are not allowed")
+		return
+	}
+
 	newComment(id, content, getUsernameByUUID(getSessionUUID(r)))
 
 	reloadPageWithoutError(w, r)

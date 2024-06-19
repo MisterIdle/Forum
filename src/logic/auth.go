@@ -18,8 +18,7 @@ func AuthHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := getNoSessionData()
-
+	data := getNoSessionData(false, "")
 	RenderTemplateGlobal(w, r, "templates/auth.html", data)
 }
 
@@ -31,26 +30,28 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	confirmPassword := r.FormValue("confirmPassword")
 
 	if password != confirmPassword {
-		reloadPageWithError(w, r, "Passwords do not match")
+		data := getNoSessionData(true, "Passwords do not match")
+		RenderTemplateGlobal(w, r, "templates/auth.html", data)
 		return
 	}
 
 	hashedPassword := hashedPassword(password)
 
 	if checkUserEmail(email) {
-		reloadPageWithError(w, r, "Email already exists")
+		data := getNoSessionData(true, "Email already exists")
+		RenderTemplateGlobal(w, r, "templates/auth.html", data)
 		return
 	}
 
 	if checkUserUsername(username) {
-		reloadPageWithError(w, r, "Username already exists")
+		data := getNoSessionData(true, "Username already exists")
+		RenderTemplateGlobal(w, r, "templates/auth.html", data)
 		return
 	}
 
 	newUser(username, email, string(hashedPassword), "Default.png", 1)
 	createSession(w, username)
 	mainPage(w, r)
-
 }
 
 // Login handler
@@ -66,7 +67,8 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
-		reloadPageWithError(w, r, "Invalid username or password")
+		data := getNoSessionData(true, "Invalid username or password")
+		RenderTemplateGlobal(w, r, "templates/auth.html", data)
 		return
 	}
 
