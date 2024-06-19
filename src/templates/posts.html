@@ -87,7 +87,7 @@
                     <button type="submit"><i class="fas fa-flag"></i> Report</button>
                 </form>
 
-                {{if eq .Session.Rank "Administrator"}}
+                {{if eq .Session.Rank "Moderator" "Administrator"}}
                     <form action="/delete-post" method="POST" class="delete-form-admin">
                         <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
@@ -144,7 +144,7 @@
                                     <button type="submit"><i class="fas fa-flag"></i> Report</button>
                                 </form>
 
-                                {{if eq .Sessions.Rank "Administrator"}}
+                                {{if eq .Sessions.Rank "Moderator" "Administrator"}}
                                     <form action="/delete-comment" method="POST" class="delete-form-admin">
                                         <input type="hidden" name="comment_id" value="{{.CommentID}}">
                                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
