@@ -7,18 +7,11 @@ import (
 	"os"
 )
 
-func ProfileHandler(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Query().Get("name")
-
-	if name == "" {
-		http.Error(w, "Invalid username", http.StatusBadRequest)
-		return
-	}
-
+// getProfileData fetches profile data and returns a Profile struct.
+func getProfileData(name string) (Profile, error) {
 	profile, err := fetchProfile(name)
 	if err != nil {
-		http.Error(w, "Error retrieving profile", http.StatusInternalServerError)
-		return
+		return Profile{}, err
 	}
 
 	data := Profile{
@@ -35,119 +28,133 @@ func ProfileHandler(w http.ResponseWriter, r *http.Request) {
 		Comments:      fetchProfileComments(name),
 	}
 
+	return data, nil
+}
+
+// ProfileHandler handles the profile page request.
+func ProfileHandler(w http.ResponseWriter, r *http.Request) {
+	name := r.FormValue("name")
+
+	data, err := getProfileData(name)
+	if err != nil {
+		errorPage(w, r)
+		return
+	}
+
 	RenderTemplateGlobal(w, r, "templates/profile.html", data)
 }
 
+// ChangeProfileUsernameHandler handles the username change request.
 func ChangeProfileUsernameHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	uuid := r.FormValue("uuid")
 
 	if checkUserUsername(username) {
-		http.Error(w, "Username already exists", http.StatusBadRequest)
+		reloadPageWithError(w, r, "Username already exists")
 		return
 	}
 
 	changeProfileUsername(username, uuid)
-
-	http.Redirect(w, r, fmt.Sprintf("/profile/?name=%s", username), http.StatusSeeOther)
+	mainPage(w, r)
 }
 
+// ChangeProfilePasswordHandler handles the password change request.
 func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	password := r.FormValue("password")
 	uuid := r.FormValue("uuid")
 
 	changeProfilePassword(hashedPassword(password), uuid)
-
 	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
 }
 
+// ChangeProfileEmailHandler handles the email change request.
 func ChangeProfileEmailHandler(w http.ResponseWriter, r *http.Request) {
 	email := r.FormValue("email")
 	uuid := r.FormValue("uuid")
 
 	if checkUserEmail(email) {
-		http.Error(w, "Email already exists", http.StatusBadRequest)
+		reloadPageWithError(w, r, "Email already exists")
 		return
 	}
 
 	changeProfileEmail(email, uuid)
-
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
+// ChangeProfilePictureHandler handles the profile picture change request.
 func ChangeProfilePictureHandler(w http.ResponseWriter, r *http.Request) {
 	r.ParseMultipartForm(10 << 20)
 
 	file, handler, err := r.FormFile("picture")
 	if err != nil {
-		http.Error(w, "Error uploading file", http.StatusInternalServerError)
+		errorPage(w, r)
 		return
 	}
-
 	defer file.Close()
 
 	fileSize := handler.Size
 	if fileSize > MaxImageSize {
-		http.Error(w, "Image is too large. Maximum allowed size is 20 MB.", http.StatusBadRequest)
+		reloadPageWithError(w, r, "File size too large")
 		return
 	}
 
 	if !isValidType(handler.Header.Get("Content-Type")) {
-		http.Error(w, "Invalid file type", http.StatusBadRequest)
+		reloadPageWithError(w, r, "Invalid file type")
 		return
 	}
 
 	uuid := r.FormValue("uuid")
-
 	oldPicture := getProfilePictureByUUID(uuid)
 	if oldPicture != "Default.png" {
 		err := os.Remove(fmt.Sprintf("./img/profile/%s", oldPicture))
 		if err != nil {
-			http.Error(w, "Error removing old picture", http.StatusInternalServerError)
+			reloadPageWithError(w, r, "Error deleting old picture")
 			return
 		}
 	}
 
-	dst, _ := os.Create(fmt.Sprintf("./img/profile/%s_%s", uuid, handler.Filename))
+	dst, err := os.Create(fmt.Sprintf("./img/profile/%s_%s", uuid, handler.Filename))
+	if err != nil {
+		reloadPageWithError(w, r, "Error saving file")
+		return
+	}
 	defer dst.Close()
 
 	io.Copy(dst, file)
 
 	changeProfilePicture(fmt.Sprintf("%s_%s", uuid, handler.Filename), uuid)
-
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
+// DeleteProfileHandler handles the profile deletion request.
 func DeleteProfileHandler(w http.ResponseWriter, r *http.Request) {
 	uuid := r.FormValue("uuid")
 
 	deleteProfile(uuid)
-
 	forceLogout(w, r)
-
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
+// PromoteUserHandler handles the user promotion request.
 func PromoteUserHandler(w http.ResponseWriter, r *http.Request) {
 	uuid := r.FormValue("uuid")
 
 	promoteUser(uuid)
-
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
+// DemoteUserHandler handles the user demotion request.
 func DemoteUserHandler(w http.ResponseWriter, r *http.Request) {
 	uuid := r.FormValue("uuid")
 
 	demoteUser(uuid)
-
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
+// DeleteUserHandler handles the user deletion request.
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	uuid := r.FormValue("uuid")
 
 	deleteProfile(uuid)
-
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }

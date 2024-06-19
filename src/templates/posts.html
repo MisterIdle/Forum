@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post > {{.Data.Title}}</title>
-    <link rel="stylesheet" href="/styles/style.css">
+    
+    <link rel="stylesheet" href="/styles/styles.css">
 </head>
 <body>
     <header class="header">
@@ -14,15 +15,28 @@
     
         {{if .Session.LoggedIn}}
             {{if eq .Session.Rank "Moderator" "Administrator"}}
-                <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
+
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
-            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+            <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/auth/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
     </header>
+
+    {{if .Session.HasError}}
+    <div class="overlay"></div>
+        <div class="error">
+            <form action="/reload" method="post">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Oops!</h2>
+                <p>{{.Session.Message}}</p>
+                <button type="submit" class="close-error">Close</button>
+            </form>
+        </div>
+    {{end}}
 
     <div class="categories-container">
         <div class="categories-tableau">
@@ -142,6 +156,12 @@
         </div>
     </div>
 
+    <footer class="footer">
+        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
+        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
+        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
+    </footer>
+    
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile > {{.Data.Username}}</title>
 
-    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/styles.css">
 </head>
 <body>
     <header class="header">
@@ -21,10 +21,22 @@
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
-            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+            <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/auth/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
     </header>
+
+    {{if .Session.HasError}}
+    <div class="overlay"></div>
+        <div class="error">
+            <form action="/reload" method="post">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Oops!</h2>
+                <p>{{.Session.Message}}</p>
+                <button type="submit" class="close-error">Close</button>
+            </form>
+        </div>
+    {{end}}
 
     <div class="profile-container">
         <h2><i class="fas fa-user"></i> Profile</h2>
@@ -34,37 +46,38 @@
                     <div class="profile-settings-container">
                         <div class="profile-settings">
                             <div class="profile-settings"><i class="fas fa-cog"></i> Settings</div>
-                            <div class="settings-menu">
-                                <form action="/change-username" method="POST" class="change-username-form">
-                                    <input type="text" name="username" placeholder="{{.Data.Username}}" maxlength="20" required>
-                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                    <button type="submit"><i class="fas fa-check"></i></button>
-                                </form>
-                
-                                <form action="/change-password" method="POST" class="change-password-form">
-                                    <input type="password" name="password" placeholder="Password" required>
-                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                    <button type="submit"><i class="fas fa-check"></i></button>
-                                </form>
-                
-                                <form action="/change-email" method="POST" class="change-email-form">
-                                    <input type="email" name="email" placeholder="example@gmail.com" required>
-                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                    <button type="submit"><i class="fas fa-check"></i></button>
-                                </form>
+                                <div class="settings-menu">
+                                    <form action="/change-username" method="POST" class="change-username-form">
+                                        <input type="text" name="username" placeholder="{{.Data.Username}}" maxlength="20" required>
+                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                        <button type="submit"><i class="fas fa-check"></i></button>
+                                    </form>
+                                
+                                    <form action="/change-password" method="POST" class="change-password-form">
+                                        <input type="password" name="password" placeholder="Password" required>
+                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                        <button type="submit"><i class="fas fa-check"></i></button>
+                                    </form>
+                                
+                                    <form action="/change-email" method="POST" class="change-email-form">
+                                        <input type="email" name="email" placeholder="example@gmail.com" required>
+                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                        <button type="submit"><i class="fas fa-check"></i></button>
+                                    </form>
 
-                                <form action="/change-picture" method="POST" enctype="multipart/form-data" class="change-picture-form">
-                                    <input type="file" name="picture" accept="image/*" required>
-                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                    <button type="submit"><i class="fas fa-check"></i></button>
-                                </form>
+                                    <form action="/change-picture" method="POST" enctype="multipart/form-data" class="change-picture-form">
+                                        <input type="file" name="picture" accept="image/*" required>
+                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                        <button type="submit"><i class="fas fa-check"></i></button>
+                                    </form>
 
-                                <form action="/delete-account" method="POST" class="delete-account-form">
-                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                    <button class="delete" type="submit"><i class="fas fa-trash-alt"></i> Delete account</button>
-                                </form>
+                                    <form action="/delete-account" method="POST" class="delete-account-form">
+                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                        <button class="delete" type="submit"><i class="fas fa-trash-alt"></i> Delete account</button>
+                                    </form>
+
+                                </div>
                             </div>
-                        </div>
                         <div class="profile-uuid">UUID: {{.Data.UUID}}</div>
                     </div>
                 {{end}}
@@ -133,6 +146,12 @@
         </div>
     </div>
 
+    <footer class="footer">
+        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
+        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
+        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
+    </footer>
+    
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

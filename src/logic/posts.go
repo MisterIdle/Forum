@@ -66,26 +66,24 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(categoryID)
 	if err != nil {
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Invalid category ID"}, nil)
+		http.Error(w, "Invalid category ID", http.StatusBadRequest)
 		return
 	}
 
-	data, _ := getCategoryData(id)
-
 	if checkPostTitle(title) {
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Post already exists"}, data)
+		reloadPageWithError(w, r, "Post title already exists")
 		return
 	}
 
 	postID, err := newPost(id, title, content, getUsernameByUUID(getSessionUUID(r)))
 	if err != nil {
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error creating post"}, data)
+		reloadPageWithError(w, r, "Error creating post")
 		return
 	}
 
-	err = r.ParseMultipartForm(10 << 20) // 10 MB
+	err = r.ParseMultipartForm(10 << 20)
 	if err != nil {
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error parsing multipart form"}, data)
+		reloadPageWithError(w, r, "Error parsing form")
 		return
 	}
 
@@ -93,35 +91,35 @@ func CreatePostHandler(w http.ResponseWriter, r *http.Request) {
 	for _, fileHandler := range files {
 		file, err := fileHandler.Open()
 		if err != nil {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error uploading file"}, data)
+			reloadPageWithError(w, r, "Error retrieving file")
 			return
 		}
 		defer file.Close()
 
 		if fileHandler.Size > MaxImageSize {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Image is too large. Maximum allowed size is 20 MB."}, data)
+			reloadPageWithError(w, r, "File size too large")
 			return
 		}
 
 		if !isValidType(fileHandler.Header.Get("Content-Type")) {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Invalid file type"}, data)
+			reloadPageWithError(w, r, "Invalid file type")
 			return
 		}
 
 		dst, err := os.Create(fmt.Sprintf("./img/upload/%d_%s", postID, fileHandler.Filename))
 		if err != nil {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error creating file"}, data)
+			reloadPageWithError(w, r, "Error saving file")
 			return
 		}
 		defer dst.Close()
 
 		if _, err = io.Copy(dst, file); err != nil {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error saving file"}, data)
+			reloadPageWithError(w, r, "Error saving file")
 			return
 		}
 
 		if err = uploadImage(postID, fmt.Sprintf("%d_%s", postID, fileHandler.Filename)); err != nil {
-			RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error uploading image"}, data)
+			reloadPageWithError(w, r, "Error saving image")
 			return
 		}
 	}
@@ -140,7 +138,7 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	deletePost(id)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // LikePostHandler handles liking a post
@@ -170,7 +168,7 @@ func LikePostHandler(w http.ResponseWriter, r *http.Request) {
 		removeLikePost(id, userID)
 	}
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // DislikePostHandler handles disliking a post
@@ -200,7 +198,7 @@ func DislikePostHandler(w http.ResponseWriter, r *http.Request) {
 		removeDislikePost(id, userID)
 	}
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // isValidType checks if the file type is valid for image uploads

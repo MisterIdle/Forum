@@ -1137,3 +1137,200 @@ header .register:hover {
     background-color: var(--dark-bg-color);
     transform: translateY(-2px);
 }
+
+/* Error Container */
+
+/* Error Container */
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+}
+
+.error {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background-color: #ffe8e8;
+    color: var(--text-color);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    width: 95%;
+    max-width: 600px;
+    text-align: center;
+    animation: popup 0.3s ease-out forwards;
+}
+
+.error img {
+    max-width: 100px;
+    margin-bottom: 20px;
+}
+
+.error i {
+    font-size: 50px;
+    margin-bottom: 20px;
+    color: var(--error-color);
+}
+
+.error h2 {
+    font-size: 50px;
+    margin-bottom: 20px;
+    color: var(--error-color);
+}
+
+.error p {
+    font-size: 25px;
+    margin-bottom: 25px;
+    color: var(--error-color);
+}
+
+.error button {
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.error button:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
+@keyframes popup {
+    from {
+        transform: translate(-50%, -50%) scale(0);
+    }
+    to {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+/* Error */
+
+.error-container {
+    text-align: center;
+    margin: 50px auto;
+}
+
+.error-title {
+    font-size: 60px;
+    color: var(--error-color);
+    margin-bottom: 20px;
+}
+
+.error-message {
+    font-size: 24px;
+    color: var(--text-color);
+    margin-bottom: 20px;
+}
+
+.error-link {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 15px 30px;
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.error-link:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
+.error-button {
+    background-color: var(--highlight-bg-color);
+    color: var(--text-color);
+    border: none;
+    padding: 15px 30px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.3s ease;
+    margin-top: 20px;
+    font-size: 18px;
+}
+
+.error-button:hover {
+    background-color: var(--highlight-hover-bg-color);
+    transform: translateY(-2px);
+}
+
+.error-icon {
+    font-size: 100px;
+    color: var(--error-color);
+    margin-bottom: 20px;
+}
+
+.error-image {
+    max-width: 300px;
+    display: block;
+    margin: 0 auto;
+    height: auto;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    animation: float 3s ease infinite;
+    cursor: pointer;
+}
+
+.error-image:hover {
+    animation: crazyfloat 3s ease infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Fait un arc en ciel, et fait le tourner */
+@keyframes crazyfloat {
+    100% {
+        transform: translateY(-10px) rotate(360deg);
+        filter: hue-rotate(360deg);
+    }
+}
+
+/* Footer Styles */
+
+footer {
+    background-color: var(--header-bg-color);
+    color: var(--text-color);
+    padding: 15px 50px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.5);
+    margin-top: 50px;
+}
+
+footer a {
+    margin-left: 25px;
+    color: var(--text-color);
+    text-decoration: none;
+    font-size: 25px;
+}
+
+footer a:hover {
+    color: var(--hover-color);
+}
+

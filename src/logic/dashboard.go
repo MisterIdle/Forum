@@ -14,8 +14,7 @@ func DashboardHandler(w http.ResponseWriter, r *http.Request) {
 
 	profile, err := fetchProfile(name)
 	if err != nil {
-		RenderTemplateWithoutData(w, "templates/dashboard.html")
-		return
+		errorPage(w, r)
 	}
 
 	data := DashBoard{

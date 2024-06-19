@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="/styles/style.css">
+    <link rel="stylesheet" href="/styles/styles.css">
 </head>
 <body>
     <header class="header">
@@ -20,10 +20,22 @@
             <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
-            <a href="/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
-            <a href="/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+            <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/auth/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
         {{end}}
     </header>
+
+    {{if .Session.HasError}}
+    <div class="overlay"></div>
+        <div class="error">
+            <form action="/reload" method="post">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h2>Oops!</h2>
+                <p>{{.Session.Message}}</p>
+                <button type="submit" class="close-error">Close</button>
+            </form>
+        </div>
+    {{end}}
 
     <div class="auth-container">
         <form id="registerForm" action="/register" method="post" class="auth-form">
@@ -50,7 +62,6 @@
                     <i class="toggle-password fas fa-eye-slash" onclick="togglePassword('registerConfirmPassword', this)"></i>
                 </div>
             </div>
-            <div class="error-message">{{.Data.Error}}</div>
             <button type="button" class="toggle-button" onclick="toggleForm('loginForm')">Already have an account?</button>
             <button type="submit" class="login-button">Signup</button>
         </form>
@@ -68,11 +79,17 @@
                     <i class="toggle-password fas fa-eye-slash" onclick="togglePassword('loginPassword', this)"></i>
                 </div>
             </div>
-            <div class="error-message">{{.Data.Error}}</div>
             <button type="button" class="toggle-button" onclick="toggleForm('registerForm')">Don't have an account?</button>
             <button type="submit" class="login-button">Login</button>
         </form>
     </div>
+
+    
+    <footer class="footer">
+        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
+        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
+        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
+    </footer>
 
     <script>
         function togglePassword(inputId, icon) {
@@ -101,10 +118,10 @@
             }
         }
 
-        if (window.location.href.includes("register")) {
-            toggleForm("registerForm");
-        } else {
+        if (window.location.href.includes("login")) {
             toggleForm("loginForm");
+        } else {
+            toggleForm("registerForm");
         }
     </script>
     

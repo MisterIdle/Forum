@@ -11,52 +11,52 @@ import (
 
 var sessions = map[string]Session{}
 
-// Basic Auth logic
+// Authentication handler
+func AuthHandler(w http.ResponseWriter, r *http.Request) {
+	if isUserLoggedIn(r) {
+		mainPage(w, r)
+		return
+	}
 
-func Register(w http.ResponseWriter, r *http.Request) {
+	data := getNoSessionData()
+
+	RenderTemplateGlobal(w, r, "templates/auth.html", data)
+}
+
+// Registration handler
+func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("username")
 	email := r.FormValue("email")
 	password := r.FormValue("password")
 	confirmPassword := r.FormValue("confirmPassword")
 
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
-
 	if password != confirmPassword {
-		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Passwords do not match"}, "")
+		reloadPageWithError(w, r, "Passwords do not match")
 		return
 	}
 
 	hashedPassword := hashedPassword(password)
 
 	if checkUserEmail(email) {
-		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Email already exists"}, "")
+		reloadPageWithError(w, r, "Email already exists")
 		return
 	}
 
 	if checkUserUsername(username) {
-		RenderTemplateError(w, r, "templates/register.html", ErrorMessage{Error: "Username already exists"}, "")
+		reloadPageWithError(w, r, "Username already exists")
 		return
 	}
 
 	newUser(username, email, string(hashedPassword), "Default.png", 1)
 	createSession(w, username)
+	mainPage(w, r)
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
-func Login(w http.ResponseWriter, r *http.Request) {
+// Login handler
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	user := r.FormValue("user")
 	password := r.FormValue("password")
-
-	data := ErrorMessage{Error: ""}
-
-	if isUserLoggedIn(r) {
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-		return
-	}
 
 	var hashedPassword, username string
 	if strings.Contains(user, "@") {
@@ -66,21 +66,46 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password)) != nil {
-		data.Error = "Invalid password"
-		RenderTemplateGlobal(w, r, "templates/register.html", data)
+		reloadPageWithError(w, r, "Invalid username or password")
 		return
 	}
 
 	createSession(w, username)
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	mainPage(w, r)
 }
 
+// Hash password
 func hashedPassword(password string) string {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Panic("Failed to generate hashed password")
+		log.Fatal(err)
 	}
 	return string(hashedPassword)
+}
+
+// Logout handler
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
+	c, err := r.Cookie("session_token")
+	if err != nil {
+		if err == http.ErrNoCookie {
+			http.Redirect(w, r, "/register", http.StatusSeeOther)
+			return
+		}
+		errorPage(w, r)
+		return
+	}
+
+	sessionToken := c.Value
+
+	delete(sessions, sessionToken)
+
+	http.SetCookie(w, &http.Cookie{
+		Name:    "session_token",
+		Value:   "",
+		Expires: time.Now(),
+	})
+
+	http.Redirect(w, r, "/auth/login", http.StatusSeeOther)
 }
 
 // Session logic

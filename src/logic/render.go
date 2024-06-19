@@ -6,6 +6,7 @@ import (
 	"text/template"
 )
 
+// RenderTemplateGlobal renders a template with global data.
 func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, data interface{}) {
 	tmpt, err := template.ParseFiles(tmpl)
 	if err != nil {
@@ -19,9 +20,8 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 			Username: getUsernameByUUID(getSessionUUID(r)),
 			LoggedIn: isUserLoggedIn(r),
 			Rank:     getRankByUUID(getSessionUUID(r)),
-		},
-		ErrorMessage: ErrorMessage{
-			Error: "",
+			HasError: getActiveSession(r).HasError,
+			Message:  getActiveSession(r).Message,
 		},
 	}
 
@@ -32,24 +32,7 @@ func RenderTemplateGlobal(w http.ResponseWriter, r *http.Request, tmpl string, d
 	}
 }
 
-func RenderTemplateError(w http.ResponseWriter, r *http.Request, templateName string, errMsg ErrorMessage, data interface{}) {
-	tmpl, err := template.ParseFiles(templateName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	combinedData := struct {
-		Error ErrorMessage
-		Data  interface{}
-	}{
-		Error: errMsg,
-		Data:  data,
-	}
-
-	tmpl.Execute(w, combinedData)
-}
-
+// RenderTemplateWithoutData renders a template without any additional data.
 func RenderTemplateWithoutData(w http.ResponseWriter, tmpl string) {
 	tmpt, err := template.ParseFiles(tmpl)
 	if err != nil {

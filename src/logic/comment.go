@@ -38,13 +38,13 @@ func CreateCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(postID)
 	if err != nil {
-		http.Error(w, "Invalid post ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	newComment(id, content, getUsernameByUUID(getSessionUUID(r)))
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // DeleteCommentHandler handles the deletion of a comment
@@ -52,16 +52,9 @@ func DeleteCommentHandler(w http.ResponseWriter, r *http.Request) {
 	commentID := r.FormValue("comment_id")
 
 	id, _ := strconv.Atoi(commentID)
-	session := getActiveSession(r) // Get the current session
-	data, err := getCommentsDataByPostID(id, session)
-
-	if err != nil {
-		RenderTemplateError(w, r, "templates/posts.html", ErrorMessage{Error: "Invalid comment ID"}, data)
-		return
-	}
 
 	deleteComment(id)
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // LikeCommentHandler handles liking a comment
@@ -70,12 +63,12 @@ func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	if !isUserLoggedIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		logginPage(w, r)
 		return
 	}
 
@@ -91,7 +84,7 @@ func LikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 		removeLikeComment(id, userID)
 	}
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 // DislikeCommentHandler handles disliking a comment
@@ -100,12 +93,12 @@ func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(commentID)
 	if err != nil {
-		http.Error(w, "Invalid comment ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	if !isUserLoggedIn(r) {
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		logginPage(w, r)
 		return
 	}
 
@@ -121,5 +114,5 @@ func DislikeCommentHandler(w http.ResponseWriter, r *http.Request) {
 		removeDislikeComment(id, userID)
 	}
 
-	http.Redirect(w, r, r.Header.Get("Referer"), http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }

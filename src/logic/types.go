@@ -1,13 +1,8 @@
 package logic
 
-type ErrorMessage struct {
-	Error string
-}
-
 type Data struct {
-	Data         interface{}
-	Session      Session
-	ErrorMessage ErrorMessage
+	Data    interface{}
+	Session Session
 }
 
 type Session struct {
@@ -16,6 +11,13 @@ type Session struct {
 	UUID     string
 	Rank     string
 	LoggedIn bool
+	HasError bool
+	Message  string
+}
+
+type Error struct {
+	HasError bool
+	Message  string
 }
 
 type DashBoard struct {

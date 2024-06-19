@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found</title>
+    <link rel="stylesheet" href="/styles/styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="logo">
+            <a href="/"><i class="fas fa-comments"></i> Prog'Here</a>
+        </div>
+    
+        {{if .Session.LoggedIn}}
+            {{if eq .Session.Rank "Moderator" "Administrator"}}
+            <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
+            {{end}}
+
+            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
+        {{else}}
+            <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
+            <a href="/auth/register" class="register"><i class="fas fa-user-plus"></i> Register</a>
+        {{end}}
+    </header>
+
+    <div class="error-container">
+        <h1 class="error-title">Oops... Duck is lost!</h1>
+        <p class="error-message">Sorry, the page you are looking for does not exist.</p>
+        <form action="/back" method="post">
+            <button type="submit" class="error-button">Go back to safety</button>
+        </form>
+    </div>
+
+    <a href="https://www.youtube.com/watch?v=dvHlC29ahgg" target="_blank">
+        <img class="error-image" src="/img/fix/duck.png" alt="404" class="error-image">
+    </a>
+
+    <footer class="footer">
+        <p>Community platform by MisterIdle | Style by MisterIdle | © 2024 Prog'Here</p>
+        <a href="https://misteridle.itch.io/" target="_blank" class="footer-link"><i class="fab fa-itch-io"></i></a>
+        <a href="https://github.com/MisterIdle " target="_blank" class="footer-link"><i class="fab fa-github"></i></a>
+    </footer>
+
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -21,13 +21,13 @@ func CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id <= 0 {
-		http.Error(w, "Invalid category ID", http.StatusBadRequest)
+		errorPage(w, r)
 		return
 	}
 
 	data, err := getCategoryData(id)
 	if err != nil {
-		http.Error(w, "Error retrieving category data", http.StatusInternalServerError)
+		errorPage(w, r)
 		return
 	}
 
@@ -40,21 +40,17 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request) {
 	global := r.FormValue("global")
 
 	if checkCategoryName(name) {
-		idStr := r.URL.Query().Get("id")
-		id, _ := strconv.Atoi(idStr)
-
-		data, _ := getCategoryData(id)
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Category already exists"}, data)
+		reloadPageWithError(w, r, "Category already exists")
 		return
 	}
 
 	err := createCategory(name, description, global)
 	if err != nil {
-		http.Error(w, "Error creating category", http.StatusInternalServerError)
+		reloadPageWithError(w, r, "Error creating category")
 		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
 
 func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
@@ -62,9 +58,8 @@ func DeleteCategoryHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := deleteCategory(categoryName)
 	if err != nil {
-		data, _ := getCategoryData(getCategoryIDByName(categoryName))
-		RenderTemplateError(w, r, "templates/categories.html", ErrorMessage{Error: "Error deleting category"}, data)
+		return
 	}
 
-	http.Redirect(w, r, "/", http.StatusSeeOther)
+	reloadPageWithoutError(w, r)
 }
