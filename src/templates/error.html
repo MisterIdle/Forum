@@ -4,20 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Not Found</title>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
+    <!-- Header section with navigation links -->
     <header class="header">
         <div class="logo">
-            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a> <!-- Logo and home link -->
         </div>
     
-        {{if .Session.LoggedIn}}
-            {{if eq .Session.Rank "Moderator" "Administrator"}}
+        {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+            {{if eq .Session.Rank "Moderator" "Administrator"}} <!-- Check if the user is a Moderator or Administrator -->
             <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
 
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
@@ -25,6 +26,7 @@
         {{end}}
     </header>
 
+    <!-- Error container -->
     <div class="error-container">
         <h1 class="error-title">Oops... Duck is lost!</h1>
         <p class="error-message">Sorry, the page you are looking for does not exist.</p>
@@ -33,10 +35,11 @@
         </form>
     </div>
 
+    <!-- Link to a YouTube video with an image -->
     <a href="https://www.youtube.com/watch?v=dvHlC29ahgg" target="_blank">
         <img class="error-image" src="/img/fix/duck.png" alt="404" class="error-image">
     </a>
 
-    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script> <!-- FontAwesome kit for icons -->
 </body>
 </html>

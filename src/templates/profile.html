@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile > {{.Data.Username}}</title>
+    <title>Profile > {{.Data.Username}}</title> <!-- Page title with username -->
 
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
+    <!-- Header section with navigation links -->
     <header class="header">
         <div class="logo">
-            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a> <!-- Logo and home link -->
         </div>
     
-        {{if .Session.LoggedIn}}
-            {{if eq .Session.Rank "Moderator" "Administrator"}}
+        {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+            {{if eq .Session.Rank "Moderator" "Administrator"}} <!-- Check if the user is a Moderator or Administrator -->
             <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
 
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
@@ -26,6 +27,7 @@
         {{end}}
     </header>
 
+    <!-- Display error message if there is an error -->
     {{if .Session.HasError}}
     <div class="overlay"></div>
         <div class="error">
@@ -38,51 +40,57 @@
         </div>
     {{end}}
 
+    <!-- Profile container -->
     <div class="profile-container">
         <h2><i class="fas fa-user"></i> Profile</h2>
         <div class="profile-header">
-            {{if .Session.LoggedIn}}
-                {{if eq .Session.Username .Data.Username}}
+            {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+                {{if eq .Session.Username .Data.Username}} <!-- Check if the logged-in user is viewing their own profile -->
                     <div class="profile-settings-container">
                         <div class="profile-settings">
                             <div class="profile-settings"><i class="fas fa-cog"></i> Settings</div>
-                                <div class="settings-menu">
-                                    <form action="/change-username" method="POST" class="change-username-form">
-                                        <input type="text" name="username" placeholder="{{.Data.Username}}" maxlength="20" required>
-                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                        <button type="submit"><i class="fas fa-check"></i></button>
-                                    </form>
-                                
-                                    <form action="/change-password" method="POST" class="change-password-form">
-                                        <input type="password" name="password" placeholder="Password" required>
-                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                        <button type="submit"><i class="fas fa-check"></i></button>
-                                    </form>
-                                
-                                    <form action="/change-email" method="POST" class="change-email-form">
-                                        <input type="email" name="email" placeholder="example@gmail.com" required>
-                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                        <button type="submit"><i class="fas fa-check"></i></button>
-                                    </form>
+                            <div class="settings-menu">
+                                <!-- Form to change username -->
+                                <form action="/change-username" method="POST" onsubmit="return confirm('Are you sure you want to change your username?')" class="change-username-form">
+                                    <input type="text" name="username" placeholder="{{.Data.Username}}" maxlength="20" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
 
-                                    <form action="/change-picture" method="POST" enctype="multipart/form-data" class="change-picture-form">
-                                        <input type="file" name="picture" accept="image/*" required>
-                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                        <button type="submit"><i class="fas fa-check"></i></button>
-                                    </form>
+                                <!-- Form to change password -->
+                                <form action="/change-password" method="POST" onsubmit="return confirm('Are you sure you want to change your password?')" class="change-password-form">
+                                    <input type="password" name="password" placeholder="Password" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
 
-                                    <form action="/delete-account" method="POST" class="delete-account-form">
-                                        <input type="hidden" name="uuid" value="{{.Data.UUID}}">
-                                        <button class="delete" type="submit"><i class="fas fa-trash-alt"></i> Delete account</button>
-                                    </form>
+                                <!-- Form to change email -->
+                                <form action="/change-email" method="POST" onsubmit="return confirm('Are you sure you want to change your email?')" class="change-email-form">
+                                    <input type="email" name="email" placeholder="example@gmail.com" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
 
-                                </div>
+                                <!-- Form to change profile picture -->
+                                <form action="/change-picture" method="POST" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to change your profile picture?')" class="change-picture-form">
+                                    <input type="file" name="picture" accept="image/*" required>
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button type="submit"><i class="fas fa-check"></i></button>
+                                </form>
+
+                                <!-- Form to delete account -->
+                                <form action="/delete-account" method="POST" onclick="return confirm('Are you sure you want to delete your account? This action is irreversible.')" class="delete-account-form">
+                                    <input type="hidden" name="uuid" value="{{.Data.UUID}}">
+                                    <button class="delete" type="submit"><i class="fas fa-trash-alt"></i> Delete account</button>
+                                </form>
                             </div>
+                        </div>
                         <div class="profile-uuid">UUID: {{.Data.UUID}}</div>
                     </div>
                 {{end}}
             {{end}}
-        
+
+            <!-- Profile information -->
             <div class="profile-info">
                 <div class="profile-picture">
                     <img src="/img/profile/{{.Data.Picture}}" alt="Profile picture">
@@ -92,24 +100,26 @@
                 <div class="profile-joined">Joined: {{.Data.Timestamp}}</div>
             </div>
 
+            <!-- Admin menu for administrators -->
             {{if eq .Session.Rank "Administrator"}}
             <div class="admin-menu">
-                <form action="/promote" method="POST" class="admin-form">
+                <form action="/promote" method="POST" onclick="return confirm('Are you sure you want to promote this user?')" class="admin-form">
                     <input type="hidden" name="uuid" value="{{.Data.UUID}}">
                     <button type="submit"><i class="fas fa-arrow-up"></i> Promote</button>
                 </form>
-                <form action="/demote" method="POST" class="admin-form">
+                <form action="/demote" method="POST" onclick="return confirm('Are you sure you want to demote this user?')" class="admin-form">
                     <input type="hidden" name="uuid" value="{{.Data.UUID}}">
                     <button type="submit"><i class="fas fa-arrow-down"></i> Demote</button>
                 </form>
-                <form action="/delete" method="POST" class="admin-form">
+                <form action="/delete" method="POST" onclick="return confirm('Are you sure you want to delete this user?')" class="admin-form">
                     <input type="hidden" name="uuid" value="{{.Data.UUID}}">
                     <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                 </form>
             </div>
             {{end}}
         </div>
-            
+        
+        <!-- User statistics -->
         <div class="stats">
             <div class="profile-posts-count">Posts: {{.Data.TotalPosts}}</div>
             <div class="profile-comments-count">Comments: {{.Data.TotalComments}}</div>
@@ -117,6 +127,7 @@
             <div class="profile-dislikes-count">Dislikes: {{.Data.TotalDislikes}}</div>
         </div>
 
+        <!-- User posts -->
         <div class="profile-posts">
             <h2>Posts</h2>
             {{range .Data.Posts}}
@@ -130,6 +141,7 @@
             {{end}}
         </div>
 
+        <!-- User comments -->
         <div class="profile-comments">
             <h2>Comments</h2>
             {{if .Data.Comments}}
@@ -146,6 +158,6 @@
         </div>
     </div>
     
-    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script> <!-- FontAwesome kit for icons -->
 </body>
 </html>

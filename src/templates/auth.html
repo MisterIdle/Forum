@@ -4,20 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
+    <!-- Header section with navigation links -->
     <header class="header">
         <div class="logo">
-            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a> <!-- Logo and home link -->
         </div>
     
-        {{if .Session.LoggedIn}}
-            {{if eq .Session.Rank "Moderator" "Administrator"}}
+        {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+            {{if eq .Session.Rank "Moderator" "Administrator"}} <!-- Check if the user is a Moderator or Administrator -->
             <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
 
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
@@ -25,6 +26,7 @@
         {{end}}
     </header>
 
+    <!-- Display error message if there is an error -->
     {{if .Data.Session.HasError}}
     <div class="overlay"></div>
         <div class="error">
@@ -37,7 +39,9 @@
         </div>
     {{end}}
 
+    <!-- Authentication form container -->
     <div class="auth-container">
+        <!-- Registration form -->
         <form id="registerForm" action="/register" method="post" class="auth-form">
             <h1>Signup</h1>
             <div class="form-group">
@@ -66,6 +70,7 @@
             <button type="submit" class="login-button">Signup</button>
         </form>
 
+        <!-- Login form -->
         <form id="loginForm" action="/login" method="post" class="auth-form hidden">
             <h1>Login</h1>
             <div class="form-group">
@@ -84,6 +89,7 @@
         </form>
     </div>
 
+    <!-- JavaScript for toggle functionality and password visibility -->
     <script>
         function togglePassword(inputId, icon) {
             const input = document.getElementById(inputId);
@@ -111,6 +117,7 @@
             }
         }
 
+        // Toggle the appropriate form based on the URL
         if (window.location.href.includes("login")) {
             toggleForm("loginForm");
         } else {
@@ -118,6 +125,7 @@
         }
     </script>
     
+    <!-- FontAwesome kit for icons -->
     <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
 </body>
 </html>

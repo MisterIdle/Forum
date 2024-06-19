@@ -3,22 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Post > {{.Data.Title}}</title>
+    <title>Post > {{.Data.Title}}</title> <!-- Page title with post title -->
     
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
+    <!-- Header section with navigation links -->
     <header class="header">
         <div class="logo">
-            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a> <!-- Logo and home link -->
         </div>
     
-        {{if .Session.LoggedIn}}
-            {{if eq .Session.Rank "Moderator" "Administrator"}}
+        {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+            {{if eq .Session.Rank "Moderator" "Administrator"}} <!-- Check if the user is a Moderator or Administrator -->
             <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
 
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
@@ -26,6 +27,7 @@
         {{end}}
     </header>
 
+    <!-- Display error message if there is an error -->
     {{if .Session.HasError}}
     <div class="overlay"></div>
         <div class="error">
@@ -38,6 +40,7 @@
         </div>
     {{end}}
 
+    <!-- Categories container -->
     <div class="categories-container">
         <div class="categories-tableau">
             <div class="category-header">
@@ -47,6 +50,7 @@
             </div>
         </div>
 
+        <!-- Post container -->
         <div class="post-container">
             <div class="post-title">{{.Data.Title}}</div>
             <div class="post-content">{{.Data.Content}}</div>
@@ -60,6 +64,7 @@
                 {{end}}
             </div>
 
+            <!-- Likes and Dislikes container -->
             <div class="likes-container">
                 <form action="/like-post" method="POST" class="like-form">
                     <h2>{{.Data.LikesPost}}</h2>
@@ -73,22 +78,18 @@
                 </form>
             </div>
 
+            <!-- Post management for the author and moderators/administrators -->
             {{if .Session.LoggedIn}}
             <div class="likes-container">
                 {{if eq .Session.Username .Data.Username}}
-                    <form action="/delete-post" method="POST" class="delete-form">
+                    <form action="/delete-post" method="POST" onclick="return confirm('Are you sure you want to delete this post?')" class="delete-form">
                         <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                     </form>
-                {{end}}
-
-                <form action="/report-post" method="POST" class="report-form">
-                    <input type="hidden" name="post_id" value="{{.Data.PostID}}">
-                    <button type="submit"><i class="fas fa-flag"></i> Report</button>
-                </form>
+                {{end}}             
 
                 {{if eq .Session.Rank "Moderator" "Administrator"}}
-                    <form action="/delete-post" method="POST" class="delete-form-admin">
+                    <form action="/delete-post" method="POST" onclick="return confirm('Are you sure you want to delete this post?')" class="delete-form-admin">
                         <input type="hidden" name="post_id" value="{{.Data.PostID}}">
                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                     </form>
@@ -97,6 +98,7 @@
             {{end}}
         </div>
 
+        <!-- Comments container -->
         <div class="comments-container">
             <h3 class="category-global">Comments</h3>
 
@@ -119,6 +121,7 @@
                             <div class="comment-date">{{.Timestamp}}</div>
                         </div>
 
+                        <!-- Likes and Dislikes container for comments -->
                         <div class="likes-container">
                             <form action="/like-comment" method="POST" class="like-form">
                                 <h2>{{.LikesComment}}</h2>
@@ -131,21 +134,17 @@
                                 <button type="submit"><i class="fas fa-heart-broken"></i></button>
                             </form>
 
+                            <!-- Comment management for the author and moderators/administrators -->
                             {{if .Sessions.LoggedIn}}
                                 {{if eq .Sessions.Username .Username}}
-                                    <form action="/delete-comment" method="POST" class="delete-form">
+                                    <form action="/delete-comment" method="POST" onclick="return confirm('Are you sure you want to delete this comment?')" class="delete-form">
                                         <input type="hidden" name="comment_id" value="{{.CommentID}}">
                                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                                     </form>
                                 {{end}}
 
-                                <form action="/report-comment" method="POST" class="report-form">
-                                    <input type="hidden" name="comment_id" value="{{.CommentID}}">
-                                    <button type="submit"><i class="fas fa-flag"></i> Report</button>
-                                </form>
-
                                 {{if eq .Sessions.Rank "Moderator" "Administrator"}}
-                                    <form action="/delete-comment" method="POST" class="delete-form-admin">
+                                    <form action="/delete-comment" method="POST" onclick="return confirm('Are you sure you want to delete this comment?')" class="delete-form-admin">
                                         <input type="hidden" name="comment_id" value="{{.CommentID}}">
                                         <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                                     </form>
@@ -158,6 +157,6 @@
         </div>
     </div>
     
-    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script> <!-- FontAwesome kit for icons -->
 </body>
 </html>

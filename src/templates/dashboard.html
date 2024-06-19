@@ -5,20 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard</title>
 
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css"> <!-- Link to external CSS -->
 </head>
 <body>
+    <!-- Header section with navigation links -->
     <header class="header">
         <div class="logo">
-            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a>
+            <a href="/back"><i class="fas fa-comments"></i> Prog'Here</a> <!-- Logo and home link -->
         </div>
     
-        {{if .Session.LoggedIn}}
-            {{if eq .Session.Rank "Moderator" "Administrator"}}
+        {{if .Session.LoggedIn}} <!-- Check if the user is logged in -->
+            {{if eq .Session.Rank "Moderator" "Administrator"}} <!-- Check if the user is a Moderator or Administrator -->
             <a href="/dashboard?view={{.Session.Username}}" class="dashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</a>
             {{end}}
 
-            <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+            <a href="/logout" class="logout" onclick="return confirm('Are you sure you want to logout?')"><i class="fas fa-sign-out-alt"></i> Logout</a>
             <a href="/profile?name={{.Session.Username}}" class="profile"><i class="fas fa-user"></i> Profile</a>
         {{else}}
             <a href="/auth/login" class="login"><i class="fas fa-sign-in-alt"></i> Login</a>
@@ -26,6 +27,7 @@
         {{end}}
     </header>
 
+    <!-- Display error message if there is an error -->
     {{if .Session.HasError}}
     <div class="overlay"></div>
         <div class="error">
@@ -38,7 +40,9 @@
         </div>
     {{end}}
 
+    <!-- Dashboard container -->
     <div class="dashboard-container">
+        <!-- Category management section for administrators -->
         {{if eq .Session.Rank "Administrator"}}
         <h1 class="dashboard-global"><i class="fas fa-list"></i> Categories</h1>
         <div class="dashboard-settings">
@@ -62,7 +66,7 @@
         </div>
         {{end}}
 
-
+        <!-- User management section -->
         <h1 class="dashboard-global"><i class="fas fa-users"></i> Users</h1>
         <div class="user-dropdown">
             <label for="users">Select User:</label>
@@ -74,6 +78,7 @@
             </select>
         </div>
     
+        <!-- User details section for moderators and administrators -->
         {{if eq .Session.Rank "Moderator" "Administrator"}}
             <div class="user-container">
                 {{if .Data}}
@@ -93,15 +98,15 @@
                     </div>
                     {{if eq .Session.Rank "Administrator"}}
                     <div class="admin-menu">
-                        <form action="/promote" method="POST" class="admin-form">
+                        <form action="/promote" method="POST" onclick="return confirm('Are you sure you want to promote this user?')" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-arrow-up"></i> Promote</button>
                         </form>
-                        <form action="/demote" method="POST" class="admin-form">
+                        <form action="/demote" method="POST" onclick="return confirm('Are you sure you want to demote this user?')" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-arrow-down"></i> Demote</button>
                         </form>
-                        <form action="/delete" method="POST" class="admin-form">
+                        <form action="/delete" method="POST" onclick="return confirm('Are you sure you want to delete this user?')" class="admin-form">
                             <input type="hidden" name="uuid" value="{{.Data.Profile.UUID}}">
                             <button type="submit"><i class="fas fa-trash-alt"></i> Delete</button>
                         </form>
@@ -109,6 +114,7 @@
                     {{end}}
                 </div>
             
+                <!-- User posts section -->
                 <div class="user-posts">
                     <h3>Posts</h3>
                     <ul>
@@ -124,6 +130,7 @@
                     </ul>
                 </div>
 
+                <!-- User comments section -->
                 <div class="user-comments">
                     <h3>Comments</h3>
                     <ul>
@@ -149,6 +156,6 @@
         {{end}}
     </div>
 
-    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/0bcb48834b.js" crossorigin="anonymous"></script> <!-- FontAwesome kit for icons -->
 </body>
 </html>
