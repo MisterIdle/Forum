@@ -1,3 +1,6 @@
+// Code by MisterIdle
+// Try Pistol Hand on Itch.io: https://misteridle.itch.io/pistol-hand :D
+
 package logic
 
 // Data struct contains the main data and session information.
