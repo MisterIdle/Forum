@@ -54,6 +54,8 @@ func InitData() {
 		fmt.Println("Database has been reset 🔄")
 	}
 
+	createUploadFolder()
+
 	createLogs("Database has been initialized ✔️")
 	fmt.Println("Database has been initialized ✔️")
 }
@@ -208,6 +210,13 @@ func resetImageFolder(folder string) {
 		if file.Name() != "Default.png" {
 			os.Remove(folder + file.Name())
 		}
+	}
+}
+
+// After limited date
+func createUploadFolder() {
+	if _, err := os.Stat("./img/upload/"); os.IsNotExist(err) {
+		os.Mkdir("./img/upload/", 0755)
 	}
 }
 
